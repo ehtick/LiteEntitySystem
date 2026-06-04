@@ -614,7 +614,7 @@ namespace LiteEntitySystem
 
             //refresh construct rpc with latest updates to entity at creation tick
             foreach (var (player,rpcNode) in _constructRpcsToRefresh)
-                _stateSerializers[rpcNode.Header.EntityId].RefreshConstructedRPC(player, rpcNode, false);
+                _stateSerializers[rpcNode.Header.EntityId].RefreshConstructedRPC(player, rpcNode);
             _constructRpcsToRefresh.Clear();
 
             //calculate max rpcs size to preallocate buffers
@@ -642,8 +642,7 @@ namespace LiteEntitySystem
                     {
                         var newRPC = _stateSerializers[e.Id].MakeNewRPC(player);
                         _stateSerializers[e.Id].RefreshNewRPC(player, newRPC);
-                        var constructRPC = _stateSerializers[e.Id].MakeConstructedRPC(player);
-                        _stateSerializers[e.Id].RefreshConstructedRPC(player, constructRPC, true);
+                        _stateSerializers[e.Id].MakeConstructedRPC(player);
                     }
                 }
                 maxRpcSize = Math.Max(maxRpcSize, player.PendingRPCSize);

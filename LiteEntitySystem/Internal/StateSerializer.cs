@@ -120,12 +120,27 @@ namespace LiteEntitySystem.Internal
                 (ushort)InternalRPCType.New,
                 ExecuteFlags.SendToAll);
 
-        public RemoteCallPacket MakeConstructedRPC(NetPlayer forPlayer) =>
-            _entity.ServerManager.AddRemoteCall(
+        public RemoteCallPacket MakeConstructedRPC(NetPlayer forPlayer)
+        {
+            //make on sync
+            try
+            {
+                var syncableFields = _entity.ClassData.SyncableFields;
+                for (int i = 0; i < syncableFields.Length; i++)
+                    RefMagic.GetFieldValue<SyncableField>(_entity, syncableFields[i].Offset).OnSyncRequested();
+                _entity.OnSyncRequested();
+            }
+            catch (Exception e)
+            {
+                Logger.LogError($"Exception in OnSyncRequested: {e}");
+            }
+
+            return _entity.ServerManager.AddRemoteCall(
                 forPlayer,
                 _entity,
                 (ushort)InternalRPCType.Construct,
                 ExecuteFlags.SendToAll);
+        }
 
         public unsafe void RefreshNewRPC(NetPlayer forPlayer, RemoteCallPacket packet)
         {
@@ -181,24 +196,8 @@ namespace LiteEntitySystem.Internal
         }
         
         //refresh construct rpc with latest values (old behaviour)
-        public unsafe void RefreshConstructedRPC(NetPlayer forPlayer, RemoteCallPacket packet, bool skipDelta)
+        public unsafe void RefreshConstructedRPC(NetPlayer forPlayer, RemoteCallPacket packet)
         {
-            //make on sync
-            try
-            {
-                var syncableFields = _entity.ClassData.SyncableFields;
-                for (int i = 0; i < syncableFields.Length; i++)
-                    RefMagic.GetFieldValue<SyncableField>(_entity, syncableFields[i].Offset).OnSyncRequested();
-                _entity.OnSyncRequested();
-            }
-            catch (Exception e)
-            {
-                Logger.LogError($"Exception in OnSyncRequested: {e}");
-            }
-
-            if(skipDelta)
-                return;
-
             bool isOwned = _entity.InternalOwnerId.Value == forPlayer.Id;
             Utils.ResizeOrCreate(ref packet.Data, MaximumSize);
             var enabledSyncGroups = RefreshSyncGroupsVariable(forPlayer);
