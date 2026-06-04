@@ -958,8 +958,7 @@ namespace LiteEntitySystem
             var entity = EntitiesDict[entityId];
             bool writeInterpolationData = !entity.IsConstructed || entity.IsRemoteControlled;
             ref var classData = ref entity.ClassData;
-            Utils.ResizeOrCreate(ref _syncCalls, _syncCallsCount + classData.FieldsCount);
-            
+
             //set values to same as predicted entity for correct OnSync calls
             if (!entity.IsConstructed && entity is PredictableEntityLogic pel)
             {
@@ -1021,7 +1020,6 @@ namespace LiteEntitySystem
                         continue;
                     }
                     
-                    Utils.ResizeOrCreate(ref _syncCalls, _syncCallsCount + entity.ClassData.FieldsCount);
                     ApplyEntityDelta(entity, rawData, readerPosition, false, false, false);
                     readerPosition = endPos;
                 }
@@ -1038,6 +1036,7 @@ namespace LiteEntitySystem
         {
             ref var classData = ref entity.ClassData;
             _changedEntities.Add(entity);
+            Utils.ResizeOrCreate(ref _syncCalls, _syncCallsCount + classData.FieldsCount);
             int readerPosition = fieldsFlagsOffset + classData.FieldsFlagsSize;
             
             fixed (byte* predictedData = classData.GetLastServerData(entity), zeroFieldData = _zeroFieldBuffer)
@@ -1045,28 +1044,29 @@ namespace LiteEntitySystem
                 for (int i = 0; i < classData.FieldsCount; i++)
                 {
                     ref var field = ref classData.Fields[i];
-                    bool hasData = Utils.IsBitSet(rawData + fieldsFlagsOffset, i);
-                    
+                    bool hasData = Utils.IsBitSet(rawData + fieldsFlagsOffset, i);        
                     byte* fieldData;
-                    int fieldSize = field.IntSize;
 
-                    //inside new rpc StateSerializer compares data with zeroes. So use same logic to decode
-                    if (insideNewRPC && !hasData)
+                    if(hasData)
                     {
-                        if (fieldSize > StateSerializer.MaxStateSize)
-                        {
-                            Logger.LogError($"Field too large for zero buffer. Entity: {entity}. Field: {field.Name}. Size: {fieldSize}");
-                            continue;
-                        }
-                        fieldData = zeroFieldData;
-                    }
-                    else if (!hasData)
-                    {
-                        continue;
+                        fieldData = rawData + readerPosition;
                     }
                     else
                     {
-                        fieldData = rawData + readerPosition;
+                        //inside new rpc StateSerializer compares data with zeroes. So use same logic to decode
+                        if(insideNewRPC)
+                        {
+                            if (field.IntSize > StateSerializer.MaxStateSize)
+                            {
+                                Logger.LogError($"Field too large for zero buffer. Entity: {entity}. Field: {field.Name}. Size: {field.Size}");
+                                continue;
+                            }
+                            fieldData = zeroFieldData;
+                        }
+                        else
+                        {
+                            continue;
+                        }
                     }
                     
                     var target = field.GetTargetObjectAndOffset(entity, out int offset);
@@ -1077,10 +1077,15 @@ namespace LiteEntitySystem
                     if (field.IsPredicted)
                         RefMagic.CopyBlock(predictedData + field.PredictedOffset, fieldData, field.Size);
                 
-                    if (field.OnSync != null && (field.OnSyncFlags & BindOnChangeFlags.ExecuteOnSync) != 0 && field.TypeProcessor.SetFromAndSync(target, offset, fieldData))
-                        _syncCalls[_syncCallsCount++] = new SyncCallInfo(entity, readerPosition, i, !hasData);
+                    if (field.OnSync != null && (field.OnSyncFlags & BindOnChangeFlags.ExecuteOnSync) != 0)
+                    {
+                        if(field.TypeProcessor.SetFromAndSync(target, offset, fieldData, hasData))
+                            _syncCalls[_syncCallsCount++] = new SyncCallInfo(entity, readerPosition, i, !hasData);
+                    }
                     else
+                    {
                         field.TypeProcessor.SetFrom(target, offset, fieldData);
+                    }
 
                     if (hasData)
                         readerPosition += field.IntSize;
