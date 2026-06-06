@@ -635,6 +635,9 @@ namespace LiteEntitySystem
             
             foreach(var player in _firstBaselineRequestedPlayers)
             {
+                //remove rpcs spawned on player connect for correct order
+                player.RemoveAllRpcs(_rpcPool);
+                
                 //new rpcs at first
                 foreach (var e in GetEntities<InternalEntity>())
                 {
