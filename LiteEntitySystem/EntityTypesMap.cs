@@ -22,8 +22,8 @@ namespace LiteEntitySystem
     
     public abstract class EntityTypesMap
     {
-        internal ushort MaxId;
-        internal readonly Dictionary<Type, RegisteredTypeInfo> RegisteredTypes = new();
+        public ushort MaxId;
+        public readonly Dictionary<Type, RegisteredTypeInfo> RegisteredTypes = new();
         private bool _isFinished;
         private ulong _resultHash = 14695981039346656037UL; //FNV1a offset
         
