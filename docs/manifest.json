@@ -382,6 +382,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/LiteEntitySystem.Extensions.BusSubscription.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/LiteEntitySystem.Extensions.BusSubscription.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "LiteEntitySystem.Extensions.BusSubscription",
+      "Summary": "<p sourcefile=\"api/LiteEntitySystem.Extensions.BusSubscription.yml\" sourcestartlinenumber=\"1\">Represents a subscription to a message bus channel that can be disposed to unsubscribe.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/LiteEntitySystem.Extensions.FloatAngle.yml",
       "output": {
         ".html": {
@@ -393,6 +407,48 @@
       "IsMRef": true,
       "Title": "LiteEntitySystem.Extensions.FloatAngle",
       "Summary": "<p sourcefile=\"api/LiteEntitySystem.Extensions.FloatAngle.yml\" sourcestartlinenumber=\"1\">Float angle in degress with correct interpolation and overlaps</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/LiteEntitySystem.Extensions.IBusMessage-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/LiteEntitySystem.Extensions.IBusMessage-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "LiteEntitySystem.Extensions.IBusMessage<TSender>",
+      "Summary": "<p sourcefile=\"api/LiteEntitySystem.Extensions.IBusMessage-1.yml\" sourcestartlinenumber=\"1\">Marker interface for message bus messages. TSender declares the expected sender type for the message.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/LiteEntitySystem.Extensions.LocalMessageBus.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/LiteEntitySystem.Extensions.LocalMessageBus.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "LiteEntitySystem.Extensions.LocalMessageBus",
+      "Summary": "<p sourcefile=\"api/LiteEntitySystem.Extensions.LocalMessageBus.yml\" sourcestartlinenumber=\"1\">A local message bus for publishing and subscribing to typed messages within a local singleton context.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/LiteEntitySystem.Extensions.LocalMessageBusExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/LiteEntitySystem.Extensions.LocalMessageBusExtensions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "LiteEntitySystem.Extensions.LocalMessageBusExtensions",
+      "Summary": "<p sourcefile=\"api/LiteEntitySystem.Extensions.LocalMessageBusExtensions.yml\" sourcestartlinenumber=\"1\">Extension methods for accessing the local message bus from entities.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -504,6 +560,20 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "LiteEntitySystem.Extensions.SyncNetSerializable<T>",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/LiteEntitySystem.Extensions.SyncPongTimer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/LiteEntitySystem.Extensions.SyncPongTimer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "LiteEntitySystem.Extensions.SyncPongTimer",
       "Summary": null
     },
     {
@@ -967,6 +1037,20 @@
       "IsMRef": true,
       "Title": "LiteEntitySystem.RPCRegistrator",
       "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/LiteEntitySystem.RegisteredTypeInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/LiteEntitySystem.RegisteredTypeInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "LiteEntitySystem.RegisteredTypeInfo",
+      "Summary": "<p sourcefile=\"api/LiteEntitySystem.RegisteredTypeInfo.yml\" sourcestartlinenumber=\"1\">Information about registered type</p>\n"
     },
     {
       "type": "ManagedReference",

@@ -199,6 +199,9 @@ Class PredictableEntityLogic
       <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_IsClient">InternalEntity.IsClient</a>
     </div>
     <div>
+      <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_ClassIdName">InternalEntity.ClassIdName</a>
+    </div>
+    <div>
       <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_Version">InternalEntity.Version</a>
     </div>
     <div>
@@ -235,7 +238,7 @@ Class PredictableEntityLogic
       <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_IsRemoved">InternalEntity.IsRemoved</a>
     </div>
     <div>
-      <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_State">InternalEntity.State</a>
+      <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_CreationState">InternalEntity.CreationState</a>
     </div>
     <div>
       <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_Destroy">InternalEntity.Destroy()</a>
@@ -284,6 +287,16 @@ Class PredictableEntityLogic
     </div>
   </dd></dl>
 
+  <dl class="typelist extensionMethods">
+    <dt>Extension Methods</dt>
+    <dd>
+  <div>
+      <a class="xref" href="LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_">LocalMessageBusExtensions.GetLocalMessageBus(InternalEntity)</a>
+  </div>
+  <div>
+      <a class="xref" href="LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_">LocalMessageBusExtensions.GetOrCreateLocalMessageBus(InternalEntity)</a>
+  </div>
+  </dd></dl>
 
 
 
@@ -324,32 +337,35 @@ Class PredictableEntityLogic
 
 
 
-  <h2 class="section" id="fields">Fields
+  <h2 class="section" id="properties">Properties
 </h2>
 
 
+  <a id="LiteEntitySystem_PredictableEntityLogic_IsRecreated_" data-uid="LiteEntitySystem.PredictableEntityLogic.IsRecreated*"></a>
 
-  <h3 id="LiteEntitySystem_PredictableEntityLogic_CreatedAtTick" data-uid="LiteEntitySystem.PredictableEntityLogic.CreatedAtTick">
-  CreatedAtTick
+  <h3 id="LiteEntitySystem_PredictableEntityLogic_IsRecreated" data-uid="LiteEntitySystem.PredictableEntityLogic.IsRecreated">
+  IsRecreated
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Is entity is recrated from server when created using AddPredictedEntity
+Can be true only on client</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public readonly ushort CreatedAtTick</code></pre>
+    <pre><code class="lang-csharp hljs">public bool IsRecreated { get; }</code></pre>
   </div>
 
 
 
 
-  <h4 class="section">Field Value</h4>
+
+  <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
     <dd></dd>
   </dl>
-
 
 
 

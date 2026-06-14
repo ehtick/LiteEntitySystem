@@ -1659,6 +1659,35 @@ references:
   isSpec: "True"
   fullName: LiteEntitySystem.ControllerLogic.IsBot
   nameWithType: ControllerLogic.IsBot
+- uid: LiteEntitySystem.ControllerLogic.OnControlledEntityChanged(LiteEntitySystem.PawnLogic)
+  name: OnControlledEntityChanged(PawnLogic)
+  href: api/LiteEntitySystem.ControllerLogic.html#LiteEntitySystem_ControllerLogic_OnControlledEntityChanged_LiteEntitySystem_PawnLogic_
+  commentId: M:LiteEntitySystem.ControllerLogic.OnControlledEntityChanged(LiteEntitySystem.PawnLogic)
+  fullName: LiteEntitySystem.ControllerLogic.OnControlledEntityChanged(LiteEntitySystem.PawnLogic)
+  nameWithType: ControllerLogic.OnControlledEntityChanged(PawnLogic)
+- uid: LiteEntitySystem.ControllerLogic.OnControlledEntityChanged*
+  name: OnControlledEntityChanged
+  href: api/LiteEntitySystem.ControllerLogic.html#LiteEntitySystem_ControllerLogic_OnControlledEntityChanged_
+  commentId: Overload:LiteEntitySystem.ControllerLogic.OnControlledEntityChanged
+  isSpec: "True"
+  fullName: LiteEntitySystem.ControllerLogic.OnControlledEntityChanged
+  nameWithType: ControllerLogic.OnControlledEntityChanged
+- uid: LiteEntitySystem.ControllerLogic.RegisterRPC(LiteEntitySystem.RPCRegistrator@)
+  name: RegisterRPC(ref RPCRegistrator)
+  href: api/LiteEntitySystem.ControllerLogic.html#LiteEntitySystem_ControllerLogic_RegisterRPC_LiteEntitySystem_RPCRegistrator__
+  commentId: M:LiteEntitySystem.ControllerLogic.RegisterRPC(LiteEntitySystem.RPCRegistrator@)
+  name.vb: RegisterRPC(RPCRegistrator)
+  fullName: LiteEntitySystem.ControllerLogic.RegisterRPC(ref LiteEntitySystem.RPCRegistrator)
+  fullName.vb: LiteEntitySystem.ControllerLogic.RegisterRPC(LiteEntitySystem.RPCRegistrator)
+  nameWithType: ControllerLogic.RegisterRPC(ref RPCRegistrator)
+  nameWithType.vb: ControllerLogic.RegisterRPC(RPCRegistrator)
+- uid: LiteEntitySystem.ControllerLogic.RegisterRPC*
+  name: RegisterRPC
+  href: api/LiteEntitySystem.ControllerLogic.html#LiteEntitySystem_ControllerLogic_RegisterRPC_
+  commentId: Overload:LiteEntitySystem.ControllerLogic.RegisterRPC
+  isSpec: "True"
+  fullName: LiteEntitySystem.ControllerLogic.RegisterRPC
+  nameWithType: ControllerLogic.RegisterRPC
 - uid: LiteEntitySystem.ControllerLogic.StartControl(LiteEntitySystem.PawnLogic)
   name: StartControl(PawnLogic)
   href: api/LiteEntitySystem.ControllerLogic.html#LiteEntitySystem_ControllerLogic_StartControl_LiteEntitySystem_PawnLogic_
@@ -2342,6 +2371,19 @@ references:
   isSpec: "True"
   fullName: LiteEntitySystem.EntityManager.ExecuteLateConstruct
   nameWithType: EntityManager.ExecuteLateConstruct
+- uid: LiteEntitySystem.EntityManager.ExecuteLocalSingletonsLateUpdate
+  name: ExecuteLocalSingletonsLateUpdate()
+  href: api/LiteEntitySystem.EntityManager.html#LiteEntitySystem_EntityManager_ExecuteLocalSingletonsLateUpdate
+  commentId: M:LiteEntitySystem.EntityManager.ExecuteLocalSingletonsLateUpdate
+  fullName: LiteEntitySystem.EntityManager.ExecuteLocalSingletonsLateUpdate()
+  nameWithType: EntityManager.ExecuteLocalSingletonsLateUpdate()
+- uid: LiteEntitySystem.EntityManager.ExecuteLocalSingletonsLateUpdate*
+  name: ExecuteLocalSingletonsLateUpdate
+  href: api/LiteEntitySystem.EntityManager.html#LiteEntitySystem_EntityManager_ExecuteLocalSingletonsLateUpdate_
+  commentId: Overload:LiteEntitySystem.EntityManager.ExecuteLocalSingletonsLateUpdate
+  isSpec: "True"
+  fullName: LiteEntitySystem.EntityManager.ExecuteLocalSingletonsLateUpdate
+  nameWithType: EntityManager.ExecuteLocalSingletonsLateUpdate
 - uid: LiteEntitySystem.EntityManager.GetControllers*
   name: GetControllers
   href: api/LiteEntitySystem.EntityManager.html#LiteEntitySystem_EntityManager_GetControllers_
@@ -3112,6 +3154,18 @@ references:
   isSpec: "True"
   fullName: LiteEntitySystem.EntityTypesMap.EvaluateEntityClassDataHash
   nameWithType: EntityTypesMap.EvaluateEntityClassDataHash
+- uid: LiteEntitySystem.EntityTypesMap.MaxId
+  name: MaxId
+  href: api/LiteEntitySystem.EntityTypesMap.html#LiteEntitySystem_EntityTypesMap_MaxId
+  commentId: F:LiteEntitySystem.EntityTypesMap.MaxId
+  fullName: LiteEntitySystem.EntityTypesMap.MaxId
+  nameWithType: EntityTypesMap.MaxId
+- uid: LiteEntitySystem.EntityTypesMap.RegisteredTypes
+  name: RegisteredTypes
+  href: api/LiteEntitySystem.EntityTypesMap.html#LiteEntitySystem_EntityTypesMap_RegisteredTypes
+  commentId: F:LiteEntitySystem.EntityTypesMap.RegisteredTypes
+  fullName: LiteEntitySystem.EntityTypesMap.RegisteredTypes
+  nameWithType: EntityTypesMap.RegisteredTypes
 - uid: LiteEntitySystem.EntityTypesMap`1
   name: EntityTypesMap<T>
   href: api/LiteEntitySystem.EntityTypesMap-1.html
@@ -3223,6 +3277,44 @@ references:
   commentId: N:LiteEntitySystem.Extensions
   fullName: LiteEntitySystem.Extensions
   nameWithType: LiteEntitySystem.Extensions
+- uid: LiteEntitySystem.Extensions.BusSubscription
+  name: BusSubscription
+  href: api/LiteEntitySystem.Extensions.BusSubscription.html
+  commentId: T:LiteEntitySystem.Extensions.BusSubscription
+  fullName: LiteEntitySystem.Extensions.BusSubscription
+  nameWithType: BusSubscription
+- uid: LiteEntitySystem.Extensions.BusSubscription.#ctor(System.Action)
+  name: BusSubscription(Action)
+  href: api/LiteEntitySystem.Extensions.BusSubscription.html#LiteEntitySystem_Extensions_BusSubscription__ctor_System_Action_
+  commentId: M:LiteEntitySystem.Extensions.BusSubscription.#ctor(System.Action)
+  name.vb: New(Action)
+  fullName: LiteEntitySystem.Extensions.BusSubscription.BusSubscription(System.Action)
+  fullName.vb: LiteEntitySystem.Extensions.BusSubscription.New(System.Action)
+  nameWithType: BusSubscription.BusSubscription(Action)
+  nameWithType.vb: BusSubscription.New(Action)
+- uid: LiteEntitySystem.Extensions.BusSubscription.#ctor*
+  name: BusSubscription
+  href: api/LiteEntitySystem.Extensions.BusSubscription.html#LiteEntitySystem_Extensions_BusSubscription__ctor_
+  commentId: Overload:LiteEntitySystem.Extensions.BusSubscription.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: LiteEntitySystem.Extensions.BusSubscription.BusSubscription
+  fullName.vb: LiteEntitySystem.Extensions.BusSubscription.New
+  nameWithType: BusSubscription.BusSubscription
+  nameWithType.vb: BusSubscription.New
+- uid: LiteEntitySystem.Extensions.BusSubscription.Dispose
+  name: Dispose()
+  href: api/LiteEntitySystem.Extensions.BusSubscription.html#LiteEntitySystem_Extensions_BusSubscription_Dispose
+  commentId: M:LiteEntitySystem.Extensions.BusSubscription.Dispose
+  fullName: LiteEntitySystem.Extensions.BusSubscription.Dispose()
+  nameWithType: BusSubscription.Dispose()
+- uid: LiteEntitySystem.Extensions.BusSubscription.Dispose*
+  name: Dispose
+  href: api/LiteEntitySystem.Extensions.BusSubscription.html#LiteEntitySystem_Extensions_BusSubscription_Dispose_
+  commentId: Overload:LiteEntitySystem.Extensions.BusSubscription.Dispose
+  isSpec: "True"
+  fullName: LiteEntitySystem.Extensions.BusSubscription.Dispose
+  nameWithType: BusSubscription.Dispose
 - uid: LiteEntitySystem.Extensions.FloatAngle
   name: FloatAngle
   href: api/LiteEntitySystem.Extensions.FloatAngle.html
@@ -3410,6 +3502,110 @@ references:
   fullName.vb: LiteEntitySystem.Extensions.FloatAngle.CType
   nameWithType: FloatAngle.implicit operator
   nameWithType.vb: FloatAngle.CType
+- uid: LiteEntitySystem.Extensions.IBusMessage`1
+  name: IBusMessage<TSender>
+  href: api/LiteEntitySystem.Extensions.IBusMessage-1.html
+  commentId: T:LiteEntitySystem.Extensions.IBusMessage`1
+  name.vb: IBusMessage(Of TSender)
+  fullName: LiteEntitySystem.Extensions.IBusMessage<TSender>
+  fullName.vb: LiteEntitySystem.Extensions.IBusMessage(Of TSender)
+  nameWithType: IBusMessage<TSender>
+  nameWithType.vb: IBusMessage(Of TSender)
+- uid: LiteEntitySystem.Extensions.LocalMessageBus
+  name: LocalMessageBus
+  href: api/LiteEntitySystem.Extensions.LocalMessageBus.html
+  commentId: T:LiteEntitySystem.Extensions.LocalMessageBus
+  fullName: LiteEntitySystem.Extensions.LocalMessageBus
+  nameWithType: LocalMessageBus
+- uid: LiteEntitySystem.Extensions.LocalMessageBus.DebugToLog
+  name: DebugToLog
+  href: api/LiteEntitySystem.Extensions.LocalMessageBus.html#LiteEntitySystem_Extensions_LocalMessageBus_DebugToLog
+  commentId: F:LiteEntitySystem.Extensions.LocalMessageBus.DebugToLog
+  fullName: LiteEntitySystem.Extensions.LocalMessageBus.DebugToLog
+  nameWithType: LocalMessageBus.DebugToLog
+- uid: LiteEntitySystem.Extensions.LocalMessageBus.Destroy
+  name: Destroy()
+  href: api/LiteEntitySystem.Extensions.LocalMessageBus.html#LiteEntitySystem_Extensions_LocalMessageBus_Destroy
+  commentId: M:LiteEntitySystem.Extensions.LocalMessageBus.Destroy
+  fullName: LiteEntitySystem.Extensions.LocalMessageBus.Destroy()
+  nameWithType: LocalMessageBus.Destroy()
+- uid: LiteEntitySystem.Extensions.LocalMessageBus.Destroy*
+  name: Destroy
+  href: api/LiteEntitySystem.Extensions.LocalMessageBus.html#LiteEntitySystem_Extensions_LocalMessageBus_Destroy_
+  commentId: Overload:LiteEntitySystem.Extensions.LocalMessageBus.Destroy
+  isSpec: "True"
+  fullName: LiteEntitySystem.Extensions.LocalMessageBus.Destroy
+  nameWithType: LocalMessageBus.Destroy
+- uid: LiteEntitySystem.Extensions.LocalMessageBus.Send*
+  name: Send
+  href: api/LiteEntitySystem.Extensions.LocalMessageBus.html#LiteEntitySystem_Extensions_LocalMessageBus_Send_
+  commentId: Overload:LiteEntitySystem.Extensions.LocalMessageBus.Send
+  isSpec: "True"
+  fullName: LiteEntitySystem.Extensions.LocalMessageBus.Send
+  nameWithType: LocalMessageBus.Send
+- uid: LiteEntitySystem.Extensions.LocalMessageBus.Send``2(``0,``1@)
+  name: Send<TSender, TMessage>(TSender, in TMessage)
+  href: api/LiteEntitySystem.Extensions.LocalMessageBus.html#LiteEntitySystem_Extensions_LocalMessageBus_Send__2___0___1__
+  commentId: M:LiteEntitySystem.Extensions.LocalMessageBus.Send``2(``0,``1@)
+  name.vb: Send(Of TSender, TMessage)(TSender, TMessage)
+  fullName: LiteEntitySystem.Extensions.LocalMessageBus.Send<TSender, TMessage>(TSender, in TMessage)
+  fullName.vb: LiteEntitySystem.Extensions.LocalMessageBus.Send(Of TSender, TMessage)(TSender, TMessage)
+  nameWithType: LocalMessageBus.Send<TSender, TMessage>(TSender, in TMessage)
+  nameWithType.vb: LocalMessageBus.Send(Of TSender, TMessage)(TSender, TMessage)
+- uid: LiteEntitySystem.Extensions.LocalMessageBus.Subscribe*
+  name: Subscribe
+  href: api/LiteEntitySystem.Extensions.LocalMessageBus.html#LiteEntitySystem_Extensions_LocalMessageBus_Subscribe_
+  commentId: Overload:LiteEntitySystem.Extensions.LocalMessageBus.Subscribe
+  isSpec: "True"
+  fullName: LiteEntitySystem.Extensions.LocalMessageBus.Subscribe
+  nameWithType: LocalMessageBus.Subscribe
+- uid: LiteEntitySystem.Extensions.LocalMessageBus.Subscribe``2(System.Action{``0,``1})
+  name: Subscribe<TSender, TMessage>(Action<TSender, TMessage>)
+  href: api/LiteEntitySystem.Extensions.LocalMessageBus.html#LiteEntitySystem_Extensions_LocalMessageBus_Subscribe__2_System_Action___0___1__
+  commentId: M:LiteEntitySystem.Extensions.LocalMessageBus.Subscribe``2(System.Action{``0,``1})
+  name.vb: Subscribe(Of TSender, TMessage)(Action(Of TSender, TMessage))
+  fullName: LiteEntitySystem.Extensions.LocalMessageBus.Subscribe<TSender, TMessage>(System.Action<TSender, TMessage>)
+  fullName.vb: LiteEntitySystem.Extensions.LocalMessageBus.Subscribe(Of TSender, TMessage)(System.Action(Of TSender, TMessage))
+  nameWithType: LocalMessageBus.Subscribe<TSender, TMessage>(Action<TSender, TMessage>)
+  nameWithType.vb: LocalMessageBus.Subscribe(Of TSender, TMessage)(Action(Of TSender, TMessage))
+- uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions
+  name: LocalMessageBusExtensions
+  href: api/LiteEntitySystem.Extensions.LocalMessageBusExtensions.html
+  commentId: T:LiteEntitySystem.Extensions.LocalMessageBusExtensions
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions
+  nameWithType: LocalMessageBusExtensions
+- uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.EntityManager)
+  name: GetLocalMessageBus(EntityManager)
+  href: api/LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_EntityManager_
+  commentId: M:LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.EntityManager)
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.EntityManager)
+  nameWithType: LocalMessageBusExtensions.GetLocalMessageBus(EntityManager)
+- uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  name: GetLocalMessageBus(InternalEntity)
+  href: api/LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  commentId: M:LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  nameWithType: LocalMessageBusExtensions.GetLocalMessageBus(InternalEntity)
+- uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus*
+  name: GetLocalMessageBus
+  href: api/LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_
+  commentId: Overload:LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus
+  isSpec: "True"
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus
+  nameWithType: LocalMessageBusExtensions.GetLocalMessageBus
+- uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  name: GetOrCreateLocalMessageBus(InternalEntity)
+  href: api/LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  commentId: M:LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  nameWithType: LocalMessageBusExtensions.GetOrCreateLocalMessageBus(InternalEntity)
+- uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus*
+  name: GetOrCreateLocalMessageBus
+  href: api/LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_
+  commentId: Overload:LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus
+  isSpec: "True"
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus
+  nameWithType: LocalMessageBusExtensions.GetOrCreateLocalMessageBus
 - uid: LiteEntitySystem.Extensions.StateCalls
   name: StateCalls
   href: api/LiteEntitySystem.Extensions.StateCalls.html
@@ -4743,6 +4939,167 @@ references:
   fullName.vb: LiteEntitySystem.Extensions.SyncNetSerializable(Of T).CType
   nameWithType: SyncNetSerializable<T>.implicit operator
   nameWithType.vb: SyncNetSerializable(Of T).CType
+- uid: LiteEntitySystem.Extensions.SyncPongTimer
+  name: SyncPongTimer
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html
+  commentId: T:LiteEntitySystem.Extensions.SyncPongTimer
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer
+  nameWithType: SyncPongTimer
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.#ctor
+  name: SyncPongTimer()
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer__ctor
+  commentId: M:LiteEntitySystem.Extensions.SyncPongTimer.#ctor
+  name.vb: New()
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.SyncPongTimer()
+  fullName.vb: LiteEntitySystem.Extensions.SyncPongTimer.New()
+  nameWithType: SyncPongTimer.SyncPongTimer()
+  nameWithType.vb: SyncPongTimer.New()
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.#ctor*
+  name: SyncPongTimer
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer__ctor_
+  commentId: Overload:LiteEntitySystem.Extensions.SyncPongTimer.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.SyncPongTimer
+  fullName.vb: LiteEntitySystem.Extensions.SyncPongTimer.New
+  nameWithType: SyncPongTimer.SyncPongTimer
+  nameWithType.vb: SyncPongTimer.New
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.CountdownTime
+  name: CountdownTime
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_CountdownTime
+  commentId: P:LiteEntitySystem.Extensions.SyncPongTimer.CountdownTime
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.CountdownTime
+  nameWithType: SyncPongTimer.CountdownTime
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.CountdownTime*
+  name: CountdownTime
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_CountdownTime_
+  commentId: Overload:LiteEntitySystem.Extensions.SyncPongTimer.CountdownTime
+  isSpec: "True"
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.CountdownTime
+  nameWithType: SyncPongTimer.CountdownTime
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.ElapsedTime
+  name: ElapsedTime
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_ElapsedTime
+  commentId: P:LiteEntitySystem.Extensions.SyncPongTimer.ElapsedTime
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.ElapsedTime
+  nameWithType: SyncPongTimer.ElapsedTime
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.ElapsedTime*
+  name: ElapsedTime
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_ElapsedTime_
+  commentId: Overload:LiteEntitySystem.Extensions.SyncPongTimer.ElapsedTime
+  isSpec: "True"
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.ElapsedTime
+  nameWithType: SyncPongTimer.ElapsedTime
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.Finish
+  name: Finish()
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_Finish
+  commentId: M:LiteEntitySystem.Extensions.SyncPongTimer.Finish
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.Finish()
+  nameWithType: SyncPongTimer.Finish()
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.Finish*
+  name: Finish
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_Finish_
+  commentId: Overload:LiteEntitySystem.Extensions.SyncPongTimer.Finish
+  isSpec: "True"
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.Finish
+  nameWithType: SyncPongTimer.Finish
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.HasStarted
+  name: HasStarted
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_HasStarted
+  commentId: P:LiteEntitySystem.Extensions.SyncPongTimer.HasStarted
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.HasStarted
+  nameWithType: SyncPongTimer.HasStarted
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.HasStarted*
+  name: HasStarted
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_HasStarted_
+  commentId: Overload:LiteEntitySystem.Extensions.SyncPongTimer.HasStarted
+  isSpec: "True"
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.HasStarted
+  nameWithType: SyncPongTimer.HasStarted
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.IsTimeElapsed
+  name: IsTimeElapsed
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_IsTimeElapsed
+  commentId: P:LiteEntitySystem.Extensions.SyncPongTimer.IsTimeElapsed
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.IsTimeElapsed
+  nameWithType: SyncPongTimer.IsTimeElapsed
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.IsTimeElapsed*
+  name: IsTimeElapsed
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_IsTimeElapsed_
+  commentId: Overload:LiteEntitySystem.Extensions.SyncPongTimer.IsTimeElapsed
+  isSpec: "True"
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.IsTimeElapsed
+  nameWithType: SyncPongTimer.IsTimeElapsed
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.MaxTime
+  name: MaxTime
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_MaxTime
+  commentId: P:LiteEntitySystem.Extensions.SyncPongTimer.MaxTime
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.MaxTime
+  nameWithType: SyncPongTimer.MaxTime
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.MaxTime*
+  name: MaxTime
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_MaxTime_
+  commentId: Overload:LiteEntitySystem.Extensions.SyncPongTimer.MaxTime
+  isSpec: "True"
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.MaxTime
+  nameWithType: SyncPongTimer.MaxTime
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.Progress
+  name: Progress
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_Progress
+  commentId: P:LiteEntitySystem.Extensions.SyncPongTimer.Progress
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.Progress
+  nameWithType: SyncPongTimer.Progress
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.Progress*
+  name: Progress
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_Progress_
+  commentId: Overload:LiteEntitySystem.Extensions.SyncPongTimer.Progress
+  isSpec: "True"
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.Progress
+  nameWithType: SyncPongTimer.Progress
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.Reset
+  name: Reset()
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_Reset
+  commentId: M:LiteEntitySystem.Extensions.SyncPongTimer.Reset
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.Reset()
+  nameWithType: SyncPongTimer.Reset()
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.Reset*
+  name: Reset
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_Reset_
+  commentId: Overload:LiteEntitySystem.Extensions.SyncPongTimer.Reset
+  isSpec: "True"
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.Reset
+  nameWithType: SyncPongTimer.Reset
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.UpdateBackward(System.Single)
+  name: UpdateBackward(float)
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_UpdateBackward_System_Single_
+  commentId: M:LiteEntitySystem.Extensions.SyncPongTimer.UpdateBackward(System.Single)
+  name.vb: UpdateBackward(Single)
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.UpdateBackward(float)
+  fullName.vb: LiteEntitySystem.Extensions.SyncPongTimer.UpdateBackward(Single)
+  nameWithType: SyncPongTimer.UpdateBackward(float)
+  nameWithType.vb: SyncPongTimer.UpdateBackward(Single)
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.UpdateBackward*
+  name: UpdateBackward
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_UpdateBackward_
+  commentId: Overload:LiteEntitySystem.Extensions.SyncPongTimer.UpdateBackward
+  isSpec: "True"
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.UpdateBackward
+  nameWithType: SyncPongTimer.UpdateBackward
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.UpdateForward(System.Single)
+  name: UpdateForward(float)
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_UpdateForward_System_Single_
+  commentId: M:LiteEntitySystem.Extensions.SyncPongTimer.UpdateForward(System.Single)
+  name.vb: UpdateForward(Single)
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.UpdateForward(float)
+  fullName.vb: LiteEntitySystem.Extensions.SyncPongTimer.UpdateForward(Single)
+  nameWithType: SyncPongTimer.UpdateForward(float)
+  nameWithType.vb: SyncPongTimer.UpdateForward(Single)
+- uid: LiteEntitySystem.Extensions.SyncPongTimer.UpdateForward*
+  name: UpdateForward
+  href: api/LiteEntitySystem.Extensions.SyncPongTimer.html#LiteEntitySystem_Extensions_SyncPongTimer_UpdateForward_
+  commentId: Overload:LiteEntitySystem.Extensions.SyncPongTimer.UpdateForward
+  isSpec: "True"
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer.UpdateForward
+  nameWithType: SyncPongTimer.UpdateForward
 - uid: LiteEntitySystem.Extensions.SyncQueue`1
   name: SyncQueue<T>
   href: api/LiteEntitySystem.Extensions.SyncQueue-1.html
@@ -6177,6 +6534,22 @@ references:
   commentId: T:LiteEntitySystem.ILocalSingletonWithUpdate
   fullName: LiteEntitySystem.ILocalSingletonWithUpdate
   nameWithType: ILocalSingletonWithUpdate
+- uid: LiteEntitySystem.ILocalSingletonWithUpdate.LateUpdate(System.Single)
+  name: LateUpdate(float)
+  href: api/LiteEntitySystem.ILocalSingletonWithUpdate.html#LiteEntitySystem_ILocalSingletonWithUpdate_LateUpdate_System_Single_
+  commentId: M:LiteEntitySystem.ILocalSingletonWithUpdate.LateUpdate(System.Single)
+  name.vb: LateUpdate(Single)
+  fullName: LiteEntitySystem.ILocalSingletonWithUpdate.LateUpdate(float)
+  fullName.vb: LiteEntitySystem.ILocalSingletonWithUpdate.LateUpdate(Single)
+  nameWithType: ILocalSingletonWithUpdate.LateUpdate(float)
+  nameWithType.vb: ILocalSingletonWithUpdate.LateUpdate(Single)
+- uid: LiteEntitySystem.ILocalSingletonWithUpdate.LateUpdate*
+  name: LateUpdate
+  href: api/LiteEntitySystem.ILocalSingletonWithUpdate.html#LiteEntitySystem_ILocalSingletonWithUpdate_LateUpdate_
+  commentId: Overload:LiteEntitySystem.ILocalSingletonWithUpdate.LateUpdate
+  isSpec: "True"
+  fullName: LiteEntitySystem.ILocalSingletonWithUpdate.LateUpdate
+  nameWithType: ILocalSingletonWithUpdate.LateUpdate
 - uid: LiteEntitySystem.ILocalSingletonWithUpdate.Update(System.Single)
   name: Update(float)
   href: api/LiteEntitySystem.ILocalSingletonWithUpdate.html#LiteEntitySystem_ILocalSingletonWithUpdate_Update_System_Single_
@@ -6527,6 +6900,12 @@ references:
   commentId: F:LiteEntitySystem.Internal.EntityState.Destroyed
   fullName: LiteEntitySystem.Internal.EntityState.Destroyed
   nameWithType: EntityState.Destroyed
+- uid: LiteEntitySystem.Internal.EntityState.LateConstructed
+  name: LateConstructed
+  href: api/LiteEntitySystem.Internal.EntityState.html#LiteEntitySystem_Internal_EntityState_LateConstructed
+  commentId: F:LiteEntitySystem.Internal.EntityState.LateConstructed
+  fullName: LiteEntitySystem.Internal.EntityState.LateConstructed
+  nameWithType: EntityState.LateConstructed
 - uid: LiteEntitySystem.Internal.EntityState.New
   name: New
   href: api/LiteEntitySystem.Internal.EntityState.html#LiteEntitySystem_Internal_EntityState_New
@@ -6589,6 +6968,19 @@ references:
   commentId: F:LiteEntitySystem.Internal.InternalEntity.ClassId
   fullName: LiteEntitySystem.Internal.InternalEntity.ClassId
   nameWithType: InternalEntity.ClassId
+- uid: LiteEntitySystem.Internal.InternalEntity.ClassIdName
+  name: ClassIdName
+  href: api/LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_ClassIdName
+  commentId: P:LiteEntitySystem.Internal.InternalEntity.ClassIdName
+  fullName: LiteEntitySystem.Internal.InternalEntity.ClassIdName
+  nameWithType: InternalEntity.ClassIdName
+- uid: LiteEntitySystem.Internal.InternalEntity.ClassIdName*
+  name: ClassIdName
+  href: api/LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_ClassIdName_
+  commentId: Overload:LiteEntitySystem.Internal.InternalEntity.ClassIdName
+  isSpec: "True"
+  fullName: LiteEntitySystem.Internal.InternalEntity.ClassIdName
+  nameWithType: InternalEntity.ClassIdName
 - uid: LiteEntitySystem.Internal.InternalEntity.ClientManager
   name: ClientManager
   href: api/LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_ClientManager
@@ -6615,6 +7007,19 @@ references:
   isSpec: "True"
   fullName: LiteEntitySystem.Internal.InternalEntity.CompareTo
   nameWithType: InternalEntity.CompareTo
+- uid: LiteEntitySystem.Internal.InternalEntity.CreationState
+  name: CreationState
+  href: api/LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_CreationState
+  commentId: P:LiteEntitySystem.Internal.InternalEntity.CreationState
+  fullName: LiteEntitySystem.Internal.InternalEntity.CreationState
+  nameWithType: InternalEntity.CreationState
+- uid: LiteEntitySystem.Internal.InternalEntity.CreationState*
+  name: CreationState
+  href: api/LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_CreationState_
+  commentId: Overload:LiteEntitySystem.Internal.InternalEntity.CreationState
+  isSpec: "True"
+  fullName: LiteEntitySystem.Internal.InternalEntity.CreationState
+  nameWithType: InternalEntity.CreationState
 - uid: LiteEntitySystem.Internal.InternalEntity.Destroy
   name: Destroy()
   href: api/LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_Destroy
@@ -6933,19 +7338,6 @@ references:
   isSpec: "True"
   fullName: LiteEntitySystem.Internal.InternalEntity.ServerManager
   nameWithType: InternalEntity.ServerManager
-- uid: LiteEntitySystem.Internal.InternalEntity.State
-  name: State
-  href: api/LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_State
-  commentId: P:LiteEntitySystem.Internal.InternalEntity.State
-  fullName: LiteEntitySystem.Internal.InternalEntity.State
-  nameWithType: InternalEntity.State
-- uid: LiteEntitySystem.Internal.InternalEntity.State*
-  name: State
-  href: api/LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_State_
-  commentId: Overload:LiteEntitySystem.Internal.InternalEntity.State
-  isSpec: "True"
-  fullName: LiteEntitySystem.Internal.InternalEntity.State
-  nameWithType: InternalEntity.State
 - uid: LiteEntitySystem.Internal.InternalEntity.ToString
   name: ToString()
   href: api/LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_ToString
@@ -7224,12 +7616,19 @@ references:
   fullName.vb: LiteEntitySystem.PredictableEntityLogic.New
   nameWithType: PredictableEntityLogic.PredictableEntityLogic
   nameWithType.vb: PredictableEntityLogic.New
-- uid: LiteEntitySystem.PredictableEntityLogic.CreatedAtTick
-  name: CreatedAtTick
-  href: api/LiteEntitySystem.PredictableEntityLogic.html#LiteEntitySystem_PredictableEntityLogic_CreatedAtTick
-  commentId: F:LiteEntitySystem.PredictableEntityLogic.CreatedAtTick
-  fullName: LiteEntitySystem.PredictableEntityLogic.CreatedAtTick
-  nameWithType: PredictableEntityLogic.CreatedAtTick
+- uid: LiteEntitySystem.PredictableEntityLogic.IsRecreated
+  name: IsRecreated
+  href: api/LiteEntitySystem.PredictableEntityLogic.html#LiteEntitySystem_PredictableEntityLogic_IsRecreated
+  commentId: P:LiteEntitySystem.PredictableEntityLogic.IsRecreated
+  fullName: LiteEntitySystem.PredictableEntityLogic.IsRecreated
+  nameWithType: PredictableEntityLogic.IsRecreated
+- uid: LiteEntitySystem.PredictableEntityLogic.IsRecreated*
+  name: IsRecreated
+  href: api/LiteEntitySystem.PredictableEntityLogic.html#LiteEntitySystem_PredictableEntityLogic_IsRecreated_
+  commentId: Overload:LiteEntitySystem.PredictableEntityLogic.IsRecreated
+  isSpec: "True"
+  fullName: LiteEntitySystem.PredictableEntityLogic.IsRecreated
+  nameWithType: PredictableEntityLogic.IsRecreated
 - uid: LiteEntitySystem.PredictableEntityLogic.OnSyncRequested
   name: OnSyncRequested()
   href: api/LiteEntitySystem.PredictableEntityLogic.html#LiteEntitySystem_PredictableEntityLogic_OnSyncRequested
@@ -7369,6 +7768,49 @@ references:
   fullName.vb: LiteEntitySystem.RPCRegistrator.CreateRPCAction(Of TEntity, T)(TEntity, System.Action(Of T), LiteEntitySystem.RemoteCall(Of T), LiteEntitySystem.ExecuteFlags)
   nameWithType: RPCRegistrator.CreateRPCAction<TEntity, T>(TEntity, Action<T>, ref RemoteCall<T>, ExecuteFlags)
   nameWithType.vb: RPCRegistrator.CreateRPCAction(Of TEntity, T)(TEntity, Action(Of T), RemoteCall(Of T), ExecuteFlags)
+- uid: LiteEntitySystem.RegisteredTypeInfo
+  name: RegisteredTypeInfo
+  href: api/LiteEntitySystem.RegisteredTypeInfo.html
+  commentId: T:LiteEntitySystem.RegisteredTypeInfo
+  fullName: LiteEntitySystem.RegisteredTypeInfo
+  nameWithType: RegisteredTypeInfo
+- uid: LiteEntitySystem.RegisteredTypeInfo.#ctor(System.UInt16,System.String,LiteEntitySystem.EntityConstructor{LiteEntitySystem.Internal.InternalEntity})
+  name: RegisteredTypeInfo(ushort, string, EntityConstructor<InternalEntity>)
+  href: api/LiteEntitySystem.RegisteredTypeInfo.html#LiteEntitySystem_RegisteredTypeInfo__ctor_System_UInt16_System_String_LiteEntitySystem_EntityConstructor_LiteEntitySystem_Internal_InternalEntity__
+  commentId: M:LiteEntitySystem.RegisteredTypeInfo.#ctor(System.UInt16,System.String,LiteEntitySystem.EntityConstructor{LiteEntitySystem.Internal.InternalEntity})
+  name.vb: New(UShort, String, EntityConstructor(Of InternalEntity))
+  fullName: LiteEntitySystem.RegisteredTypeInfo.RegisteredTypeInfo(ushort, string, LiteEntitySystem.EntityConstructor<LiteEntitySystem.Internal.InternalEntity>)
+  fullName.vb: LiteEntitySystem.RegisteredTypeInfo.New(UShort, String, LiteEntitySystem.EntityConstructor(Of LiteEntitySystem.Internal.InternalEntity))
+  nameWithType: RegisteredTypeInfo.RegisteredTypeInfo(ushort, string, EntityConstructor<InternalEntity>)
+  nameWithType.vb: RegisteredTypeInfo.New(UShort, String, EntityConstructor(Of InternalEntity))
+- uid: LiteEntitySystem.RegisteredTypeInfo.#ctor*
+  name: RegisteredTypeInfo
+  href: api/LiteEntitySystem.RegisteredTypeInfo.html#LiteEntitySystem_RegisteredTypeInfo__ctor_
+  commentId: Overload:LiteEntitySystem.RegisteredTypeInfo.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: LiteEntitySystem.RegisteredTypeInfo.RegisteredTypeInfo
+  fullName.vb: LiteEntitySystem.RegisteredTypeInfo.New
+  nameWithType: RegisteredTypeInfo.RegisteredTypeInfo
+  nameWithType.vb: RegisteredTypeInfo.New
+- uid: LiteEntitySystem.RegisteredTypeInfo.ClassId
+  name: ClassId
+  href: api/LiteEntitySystem.RegisteredTypeInfo.html#LiteEntitySystem_RegisteredTypeInfo_ClassId
+  commentId: F:LiteEntitySystem.RegisteredTypeInfo.ClassId
+  fullName: LiteEntitySystem.RegisteredTypeInfo.ClassId
+  nameWithType: RegisteredTypeInfo.ClassId
+- uid: LiteEntitySystem.RegisteredTypeInfo.ClassName
+  name: ClassName
+  href: api/LiteEntitySystem.RegisteredTypeInfo.html#LiteEntitySystem_RegisteredTypeInfo_ClassName
+  commentId: F:LiteEntitySystem.RegisteredTypeInfo.ClassName
+  fullName: LiteEntitySystem.RegisteredTypeInfo.ClassName
+  nameWithType: RegisteredTypeInfo.ClassName
+- uid: LiteEntitySystem.RegisteredTypeInfo.Constructor
+  name: Constructor
+  href: api/LiteEntitySystem.RegisteredTypeInfo.html#LiteEntitySystem_RegisteredTypeInfo_Constructor
+  commentId: F:LiteEntitySystem.RegisteredTypeInfo.Constructor
+  fullName: LiteEntitySystem.RegisteredTypeInfo.Constructor
+  nameWithType: RegisteredTypeInfo.Constructor
 - uid: LiteEntitySystem.RemoteCall
   name: RemoteCall
   href: api/LiteEntitySystem.RemoteCall.html
@@ -7623,6 +8065,12 @@ references:
   isSpec: "True"
   fullName: LiteEntitySystem.ServerEntityManager.OnLogicTick
   nameWithType: ServerEntityManager.OnLogicTick
+- uid: LiteEntitySystem.ServerEntityManager.PlayerResyncTimeout
+  name: PlayerResyncTimeout
+  href: api/LiteEntitySystem.ServerEntityManager.html#LiteEntitySystem_ServerEntityManager_PlayerResyncTimeout
+  commentId: F:LiteEntitySystem.ServerEntityManager.PlayerResyncTimeout
+  fullName: LiteEntitySystem.ServerEntityManager.PlayerResyncTimeout
+  nameWithType: ServerEntityManager.PlayerResyncTimeout
 - uid: LiteEntitySystem.ServerEntityManager.PlayersCount
   name: PlayersCount
   href: api/LiteEntitySystem.ServerEntityManager.html#LiteEntitySystem_ServerEntityManager_PlayersCount
@@ -9738,6 +10186,31 @@ references:
   fullName.vb: LiteEntitySystem.SyncVar(Of T).InterpolatedValue
   nameWithType: SyncVar<T>.InterpolatedValue
   nameWithType.vb: SyncVar(Of T).InterpolatedValue
+- uid: LiteEntitySystem.SyncVar`1.SetValueWithoutOnSyncNotification(`0)
+  name: SetValueWithoutOnSyncNotification(T)
+  href: api/LiteEntitySystem.SyncVar-1.html#LiteEntitySystem_SyncVar_1_SetValueWithoutOnSyncNotification__0_
+  commentId: M:LiteEntitySystem.SyncVar`1.SetValueWithoutOnSyncNotification(`0)
+  fullName: LiteEntitySystem.SyncVar<T>.SetValueWithoutOnSyncNotification(T)
+  fullName.vb: LiteEntitySystem.SyncVar(Of T).SetValueWithoutOnSyncNotification(T)
+  nameWithType: SyncVar<T>.SetValueWithoutOnSyncNotification(T)
+  nameWithType.vb: SyncVar(Of T).SetValueWithoutOnSyncNotification(T)
+- uid: LiteEntitySystem.SyncVar`1.SetValueWithoutOnSyncNotification*
+  name: SetValueWithoutOnSyncNotification
+  href: api/LiteEntitySystem.SyncVar-1.html#LiteEntitySystem_SyncVar_1_SetValueWithoutOnSyncNotification_
+  commentId: Overload:LiteEntitySystem.SyncVar`1.SetValueWithoutOnSyncNotification
+  isSpec: "True"
+  fullName: LiteEntitySystem.SyncVar<T>.SetValueWithoutOnSyncNotification
+  fullName.vb: LiteEntitySystem.SyncVar(Of T).SetValueWithoutOnSyncNotification
+  nameWithType: SyncVar<T>.SetValueWithoutOnSyncNotification
+  nameWithType.vb: SyncVar(Of T).SetValueWithoutOnSyncNotification
+- uid: LiteEntitySystem.SyncVar`1.Size
+  name: Size
+  href: api/LiteEntitySystem.SyncVar-1.html#LiteEntitySystem_SyncVar_1_Size
+  commentId: F:LiteEntitySystem.SyncVar`1.Size
+  fullName: LiteEntitySystem.SyncVar<T>.Size
+  fullName.vb: LiteEntitySystem.SyncVar(Of T).Size
+  nameWithType: SyncVar<T>.Size
+  nameWithType.vb: SyncVar(Of T).Size
 - uid: LiteEntitySystem.SyncVar`1.ToString
   name: ToString()
   href: api/LiteEntitySystem.SyncVar-1.html#LiteEntitySystem_SyncVar_1_ToString
@@ -10046,6 +10519,31 @@ references:
   commentId: T:LiteEntitySystem.SyncableRPCRegistrator
   fullName: LiteEntitySystem.SyncableRPCRegistrator
   nameWithType: SyncableRPCRegistrator
+- uid: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange*
+  name: BindOnChange
+  href: api/LiteEntitySystem.SyncableRPCRegistrator.html#LiteEntitySystem_SyncableRPCRegistrator_BindOnChange_
+  commentId: Overload:LiteEntitySystem.SyncableRPCRegistrator.BindOnChange
+  isSpec: "True"
+  fullName: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange
+  nameWithType: SyncableRPCRegistrator.BindOnChange
+- uid: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange``2(LiteEntitySystem.SyncVar{``1}@,System.Action{``0,``1},LiteEntitySystem.BindOnChangeFlags)
+  name: BindOnChange<TSyncField, T>(ref SyncVar<T>, Action<TSyncField, T>, BindOnChangeFlags)
+  href: api/LiteEntitySystem.SyncableRPCRegistrator.html#LiteEntitySystem_SyncableRPCRegistrator_BindOnChange__2_LiteEntitySystem_SyncVar___1___System_Action___0___1__LiteEntitySystem_BindOnChangeFlags_
+  commentId: M:LiteEntitySystem.SyncableRPCRegistrator.BindOnChange``2(LiteEntitySystem.SyncVar{``1}@,System.Action{``0,``1},LiteEntitySystem.BindOnChangeFlags)
+  name.vb: BindOnChange(Of TSyncField, T)(SyncVar(Of T), Action(Of TSyncField, T), BindOnChangeFlags)
+  fullName: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange<TSyncField, T>(ref LiteEntitySystem.SyncVar<T>, System.Action<TSyncField, T>, LiteEntitySystem.BindOnChangeFlags)
+  fullName.vb: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange(Of TSyncField, T)(LiteEntitySystem.SyncVar(Of T), System.Action(Of TSyncField, T), LiteEntitySystem.BindOnChangeFlags)
+  nameWithType: SyncableRPCRegistrator.BindOnChange<TSyncField, T>(ref SyncVar<T>, Action<TSyncField, T>, BindOnChangeFlags)
+  nameWithType.vb: SyncableRPCRegistrator.BindOnChange(Of TSyncField, T)(SyncVar(Of T), Action(Of TSyncField, T), BindOnChangeFlags)
+- uid: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange``2(``0,LiteEntitySystem.SyncVar{``1}@,System.Action{``1},LiteEntitySystem.BindOnChangeFlags)
+  name: BindOnChange<TSyncField, T>(TSyncField, ref SyncVar<T>, Action<T>, BindOnChangeFlags)
+  href: api/LiteEntitySystem.SyncableRPCRegistrator.html#LiteEntitySystem_SyncableRPCRegistrator_BindOnChange__2___0_LiteEntitySystem_SyncVar___1___System_Action___1__LiteEntitySystem_BindOnChangeFlags_
+  commentId: M:LiteEntitySystem.SyncableRPCRegistrator.BindOnChange``2(``0,LiteEntitySystem.SyncVar{``1}@,System.Action{``1},LiteEntitySystem.BindOnChangeFlags)
+  name.vb: BindOnChange(Of TSyncField, T)(TSyncField, SyncVar(Of T), Action(Of T), BindOnChangeFlags)
+  fullName: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange<TSyncField, T>(TSyncField, ref LiteEntitySystem.SyncVar<T>, System.Action<T>, LiteEntitySystem.BindOnChangeFlags)
+  fullName.vb: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange(Of TSyncField, T)(TSyncField, LiteEntitySystem.SyncVar(Of T), System.Action(Of T), LiteEntitySystem.BindOnChangeFlags)
+  nameWithType: SyncableRPCRegistrator.BindOnChange<TSyncField, T>(TSyncField, ref SyncVar<T>, Action<T>, BindOnChangeFlags)
+  nameWithType.vb: SyncableRPCRegistrator.BindOnChange(Of TSyncField, T)(TSyncField, SyncVar(Of T), Action(Of T), BindOnChangeFlags)
 - uid: LiteEntitySystem.SyncableRPCRegistrator.CreateClientAction*
   name: CreateClientAction
   href: api/LiteEntitySystem.SyncableRPCRegistrator.html#LiteEntitySystem_SyncableRPCRegistrator_CreateClientAction_
@@ -10214,12 +10712,12 @@ references:
   isSpec: "True"
   fullName: LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeer
   nameWithType: LiteNetLibExtensions.GetLiteNetLibNetPeer
-- uid: LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetLib.NetPeer)
-  name: GetLiteNetLibNetPeerFromTag(NetPeer)
-  href: api/LiteEntitySystem.Transport.LiteNetLibExtensions.html#LiteEntitySystem_Transport_LiteNetLibExtensions_GetLiteNetLibNetPeerFromTag_LiteNetLib_NetPeer_
-  commentId: M:LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetLib.NetPeer)
-  fullName: LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetLib.NetPeer)
-  nameWithType: LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(NetPeer)
+- uid: LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetLib.LiteNetPeer)
+  name: GetLiteNetLibNetPeerFromTag(LiteNetPeer)
+  href: api/LiteEntitySystem.Transport.LiteNetLibExtensions.html#LiteEntitySystem_Transport_LiteNetLibExtensions_GetLiteNetLibNetPeerFromTag_LiteNetLib_LiteNetPeer_
+  commentId: M:LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetLib.LiteNetPeer)
+  fullName: LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetLib.LiteNetPeer)
+  nameWithType: LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetPeer)
 - uid: LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag*
   name: GetLiteNetLibNetPeerFromTag
   href: api/LiteEntitySystem.Transport.LiteNetLibExtensions.html#LiteEntitySystem_Transport_LiteNetLibExtensions_GetLiteNetLibNetPeerFromTag_
@@ -10233,15 +10731,15 @@ references:
   commentId: T:LiteEntitySystem.Transport.LiteNetLibNetPeer
   fullName: LiteEntitySystem.Transport.LiteNetLibNetPeer
   nameWithType: LiteNetLibNetPeer
-- uid: LiteEntitySystem.Transport.LiteNetLibNetPeer.#ctor(LiteNetLib.NetPeer,System.Boolean)
-  name: LiteNetLibNetPeer(NetPeer, bool)
-  href: api/LiteEntitySystem.Transport.LiteNetLibNetPeer.html#LiteEntitySystem_Transport_LiteNetLibNetPeer__ctor_LiteNetLib_NetPeer_System_Boolean_
-  commentId: M:LiteEntitySystem.Transport.LiteNetLibNetPeer.#ctor(LiteNetLib.NetPeer,System.Boolean)
-  name.vb: New(NetPeer, Boolean)
-  fullName: LiteEntitySystem.Transport.LiteNetLibNetPeer.LiteNetLibNetPeer(LiteNetLib.NetPeer, bool)
-  fullName.vb: LiteEntitySystem.Transport.LiteNetLibNetPeer.New(LiteNetLib.NetPeer, Boolean)
-  nameWithType: LiteNetLibNetPeer.LiteNetLibNetPeer(NetPeer, bool)
-  nameWithType.vb: LiteNetLibNetPeer.New(NetPeer, Boolean)
+- uid: LiteEntitySystem.Transport.LiteNetLibNetPeer.#ctor(LiteNetLib.LiteNetPeer,System.Boolean)
+  name: LiteNetLibNetPeer(LiteNetPeer, bool)
+  href: api/LiteEntitySystem.Transport.LiteNetLibNetPeer.html#LiteEntitySystem_Transport_LiteNetLibNetPeer__ctor_LiteNetLib_LiteNetPeer_System_Boolean_
+  commentId: M:LiteEntitySystem.Transport.LiteNetLibNetPeer.#ctor(LiteNetLib.LiteNetPeer,System.Boolean)
+  name.vb: New(LiteNetPeer, Boolean)
+  fullName: LiteEntitySystem.Transport.LiteNetLibNetPeer.LiteNetLibNetPeer(LiteNetLib.LiteNetPeer, bool)
+  fullName.vb: LiteEntitySystem.Transport.LiteNetLibNetPeer.New(LiteNetLib.LiteNetPeer, Boolean)
+  nameWithType: LiteNetLibNetPeer.LiteNetLibNetPeer(LiteNetPeer, bool)
+  nameWithType.vb: LiteNetLibNetPeer.New(LiteNetPeer, Boolean)
 - uid: LiteEntitySystem.Transport.LiteNetLibNetPeer.#ctor*
   name: LiteNetLibNetPeer
   href: api/LiteEntitySystem.Transport.LiteNetLibNetPeer.html#LiteEntitySystem_Transport_LiteNetLibNetPeer__ctor_
@@ -10391,31 +10889,6 @@ references:
   commentId: F:LiteEntitySystem.Utils.Encoding
   fullName: LiteEntitySystem.Utils.Encoding
   nameWithType: Utils.Encoding
-- uid: LiteEntitySystem.Utils.FastEquals*
-  name: FastEquals
-  href: api/LiteEntitySystem.Utils.html#LiteEntitySystem_Utils_FastEquals_
-  commentId: Overload:LiteEntitySystem.Utils.FastEquals
-  isSpec: "True"
-  fullName: LiteEntitySystem.Utils.FastEquals
-  nameWithType: Utils.FastEquals
-- uid: LiteEntitySystem.Utils.FastEquals``1(``0@,System.Byte*)
-  name: FastEquals<T>(ref T, byte*)
-  href: api/LiteEntitySystem.Utils.html#LiteEntitySystem_Utils_FastEquals__1___0__System_Byte__
-  commentId: M:LiteEntitySystem.Utils.FastEquals``1(``0@,System.Byte*)
-  name.vb: FastEquals(Of T)(T, Byte*)
-  fullName: LiteEntitySystem.Utils.FastEquals<T>(ref T, byte*)
-  fullName.vb: LiteEntitySystem.Utils.FastEquals(Of T)(T, Byte*)
-  nameWithType: Utils.FastEquals<T>(ref T, byte*)
-  nameWithType.vb: Utils.FastEquals(Of T)(T, Byte*)
-- uid: LiteEntitySystem.Utils.FastEquals``1(``0@,``0@)
-  name: FastEquals<T>(ref T, ref T)
-  href: api/LiteEntitySystem.Utils.html#LiteEntitySystem_Utils_FastEquals__1___0____0__
-  commentId: M:LiteEntitySystem.Utils.FastEquals``1(``0@,``0@)
-  name.vb: FastEquals(Of T)(T, T)
-  fullName: LiteEntitySystem.Utils.FastEquals<T>(ref T, ref T)
-  fullName.vb: LiteEntitySystem.Utils.FastEquals(Of T)(T, T)
-  nameWithType: Utils.FastEquals<T>(ref T, ref T)
-  nameWithType.vb: Utils.FastEquals(Of T)(T, T)
 - uid: LiteEntitySystem.Utils.GetEnumValue*
   name: GetEnumValue
   href: api/LiteEntitySystem.Utils.html#LiteEntitySystem_Utils_GetEnumValue_

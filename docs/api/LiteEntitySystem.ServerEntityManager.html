@@ -246,6 +246,13 @@ Class ServerEntityManager
     </div>
   </dd></dl>
 
+  <dl class="typelist extensionMethods">
+    <dt>Extension Methods</dt>
+    <dd>
+  <div>
+      <a class="xref" href="LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_EntityManager_">LocalMessageBusExtensions.GetLocalMessageBus(EntityManager)</a>
+  </div>
+  </dd></dl>
 
 
 
@@ -323,6 +330,37 @@ Class ServerEntityManager
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="LiteEntitySystem_ServerEntityManager_PlayerResyncTimeout" data-uid="LiteEntitySystem.ServerEntityManager.PlayerResyncTimeout">
+  PlayerResyncTimeout
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Timeout after which player will receive baseline state if player cannot receive big partial state</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public float PlayerResyncTimeout</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.single">float</a></dt>
     <dd></dd>
   </dl>
 
@@ -454,7 +492,7 @@ Class ServerEntityManager
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>initMethod</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-1">Action</a>&lt;T&gt;</dt>
-    <dd><p>Method that will be called after entity construction</p>
+    <dd><p>Method that will be called before entity OnConstructed</p>
 </dd>
   </dl>
 
@@ -505,7 +543,7 @@ Class ServerEntityManager
     <dd><p>pawn that will be controlled</p>
 </dd>
     <dt><code>initMethod</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-1">Action</a>&lt;T&gt;</dt>
-    <dd><p>Method that will be called after entity construction</p>
+    <dd><p>Method that will be called before entity OnConstructed</p>
 </dd>
   </dl>
 
@@ -601,7 +639,7 @@ Class ServerEntityManager
     <dd><p>Parent entity</p>
 </dd>
     <dt><code>initMethod</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-1">Action</a>&lt;T&gt;</dt>
-    <dd><p>Method that will be called after entity construction</p>
+    <dd><p>Method that will be called before entity OnConstructed</p>
 </dd>
   </dl>
 
@@ -646,7 +684,7 @@ Class ServerEntityManager
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>initMethod</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-1">Action</a>&lt;T&gt;</dt>
-    <dd><p>Method that will be called after entity construction</p>
+    <dd><p>Method that will be called before entity OnConstructed</p>
 </dd>
   </dl>
 
@@ -730,7 +768,7 @@ Class ServerEntityManager
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>initMethod</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-1">Action</a>&lt;T&gt;</dt>
-    <dd><p>Method that will be called after entity construction</p>
+    <dd><p>Method that will be called before entity OnConstructed</p>
 </dd>
   </dl>
 

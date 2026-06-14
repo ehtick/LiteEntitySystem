@@ -8,8 +8,6 @@ items:
   - LiteEntitySystem.Utils.AddToArrayDynamic``1(``0[]@,System.Int32@,``0)
   - LiteEntitySystem.Utils.BytesToHexString(System.ReadOnlySpan{System.Byte})
   - LiteEntitySystem.Utils.Encoding
-  - LiteEntitySystem.Utils.FastEquals``1(``0@,System.Byte*)
-  - LiteEntitySystem.Utils.FastEquals``1(``0@,``0@)
   - LiteEntitySystem.Utils.GetEnumValueInt``1(``0)
   - LiteEntitySystem.Utils.GetEnumValue``1(LiteEntitySystem.SyncVar{``0})
   - LiteEntitySystem.Utils.GetEnumValue``1(``0)
@@ -341,66 +339,6 @@ items:
   nameWithType.vb: Utils.GetEnumValue(Of T)(SyncVar(Of T))
   fullName.vb: LiteEntitySystem.Utils.GetEnumValue(Of T)(LiteEntitySystem.SyncVar(Of T))
   name.vb: GetEnumValue(Of T)(SyncVar(Of T))
-- uid: LiteEntitySystem.Utils.FastEquals``1(``0@,``0@)
-  commentId: M:LiteEntitySystem.Utils.FastEquals``1(``0@,``0@)
-  id: FastEquals``1(``0@,``0@)
-  parent: LiteEntitySystem.Utils
-  langs:
-  - csharp
-  - vb
-  name: FastEquals<T>(ref T, ref T)
-  nameWithType: Utils.FastEquals<T>(ref T, ref T)
-  fullName: LiteEntitySystem.Utils.FastEquals<T>(ref T, ref T)
-  type: Method
-  assemblies:
-  - LiteEntitySystem
-  namespace: LiteEntitySystem
-  syntax:
-    content: 'public static bool FastEquals<T>(ref T a, ref T b) where T : unmanaged'
-    parameters:
-    - id: a
-      type: '{T}'
-    - id: b
-      type: '{T}'
-    typeParameters:
-    - id: T
-    return:
-      type: System.Boolean
-    content.vb: Public Shared Function FastEquals(Of T As Structure)(a As T, b As T) As Boolean
-  overload: LiteEntitySystem.Utils.FastEquals*
-  nameWithType.vb: Utils.FastEquals(Of T)(T, T)
-  fullName.vb: LiteEntitySystem.Utils.FastEquals(Of T)(T, T)
-  name.vb: FastEquals(Of T)(T, T)
-- uid: LiteEntitySystem.Utils.FastEquals``1(``0@,System.Byte*)
-  commentId: M:LiteEntitySystem.Utils.FastEquals``1(``0@,System.Byte*)
-  id: FastEquals``1(``0@,System.Byte*)
-  parent: LiteEntitySystem.Utils
-  langs:
-  - csharp
-  - vb
-  name: FastEquals<T>(ref T, byte*)
-  nameWithType: Utils.FastEquals<T>(ref T, byte*)
-  fullName: LiteEntitySystem.Utils.FastEquals<T>(ref T, byte*)
-  type: Method
-  assemblies:
-  - LiteEntitySystem
-  namespace: LiteEntitySystem
-  syntax:
-    content: 'public static bool FastEquals<T>(ref T a, byte* x2) where T : unmanaged'
-    parameters:
-    - id: a
-      type: '{T}'
-    - id: x2
-      type: System.Byte*
-    typeParameters:
-    - id: T
-    return:
-      type: System.Boolean
-    content.vb: Public Shared Function FastEquals(Of T As Structure)(a As T, x2 As Byte*) As Boolean
-  overload: LiteEntitySystem.Utils.FastEquals*
-  nameWithType.vb: Utils.FastEquals(Of T)(T, Byte*)
-  fullName.vb: LiteEntitySystem.Utils.FastEquals(Of T)(T, Byte*)
-  name.vb: FastEquals(Of T)(T, Byte*)
 - uid: LiteEntitySystem.Utils.ResizeIfFull``1(``0[]@,System.Int32)
   commentId: M:LiteEntitySystem.Utils.ResizeIfFull``1(``0[]@,System.Int32)
   id: ResizeIfFull``1(``0[]@,System.Int32)
@@ -1097,33 +1035,6 @@ references:
   - name: " "
   - name: T
   - name: )
-- uid: LiteEntitySystem.Utils.FastEquals*
-  commentId: Overload:LiteEntitySystem.Utils.FastEquals
-  href: LiteEntitySystem.Utils.html#LiteEntitySystem_Utils_FastEquals__1___0____0__
-  name: FastEquals
-  nameWithType: Utils.FastEquals
-  fullName: LiteEntitySystem.Utils.FastEquals
-- uid: System.Byte*
-  isExternal: true
-  href: https://learn.microsoft.com/dotnet/api/system.byte
-  name: byte*
-  nameWithType: byte*
-  fullName: byte*
-  nameWithType.vb: Byte*
-  fullName.vb: Byte*
-  name.vb: Byte*
-  spec.csharp:
-  - uid: System.Byte
-    name: byte
-    isExternal: true
-    href: https://learn.microsoft.com/dotnet/api/system.byte
-  - name: '*'
-  spec.vb:
-  - uid: System.Byte
-    name: Byte
-    isExternal: true
-    href: https://learn.microsoft.com/dotnet/api/system.byte
-  - name: '*'
 - uid: LiteEntitySystem.Utils.ResizeIfFull*
   commentId: Overload:LiteEntitySystem.Utils.ResizeIfFull
   href: LiteEntitySystem.Utils.html#LiteEntitySystem_Utils_ResizeIfFull__1___0____System_Int32_
@@ -1187,6 +1098,27 @@ references:
     href: https://learn.microsoft.com/dotnet/api/system.byte
   - name: (
   - name: )
+- uid: System.Byte*
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.byte
+  name: byte*
+  nameWithType: byte*
+  fullName: byte*
+  nameWithType.vb: Byte*
+  fullName.vb: Byte*
+  name.vb: Byte*
+  spec.csharp:
+  - uid: System.Byte
+    name: byte
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.byte
+  - name: '*'
+  spec.vb:
+  - uid: System.Byte
+    name: Byte
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.byte
+  - name: '*'
 - uid: LiteEntitySystem.Utils.Lerp*
   commentId: Overload:LiteEntitySystem.Utils.Lerp
   href: LiteEntitySystem.Utils.html#LiteEntitySystem_Utils_Lerp_System_Single_System_Single_System_Single_

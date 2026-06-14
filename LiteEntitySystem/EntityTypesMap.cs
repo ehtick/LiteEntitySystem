@@ -6,7 +6,10 @@ using LiteEntitySystem.Internal;
 
 namespace LiteEntitySystem
 {
-    internal readonly struct RegisteredTypeInfo
+    /// <summary>
+    /// Information about registered type
+    /// </summary>
+    public readonly struct RegisteredTypeInfo
     {
         public readonly ushort ClassId;
         public readonly string ClassName;
@@ -22,8 +25,18 @@ namespace LiteEntitySystem
     
     public abstract class EntityTypesMap
     {
+        /// <summary>
+        /// Maximum registered id. Ids start with 1
+        /// Modify only in case when you know what you doing
+        /// </summary>
         public ushort MaxId;
+
+        /// <summary>
+        /// Currently registered types
+        /// Modify only in case when you know what you doing
+        /// </summary>
         public readonly Dictionary<Type, RegisteredTypeInfo> RegisteredTypes = new();
+
         private bool _isFinished;
         private ulong _resultHash = 14695981039346656037UL; //FNV1a offset
         

@@ -36,6 +36,7 @@ items:
   - LiteEntitySystem.Extensions.SyncArray`1
   - LiteEntitySystem.Extensions.SyncFixedArray`1
   - LiteEntitySystem.Extensions.SyncNetSerializable`1
+  - LiteEntitySystem.Extensions.SyncPongTimer
   - LiteEntitySystem.Extensions.SyncSpanSerializable`1
   - LiteEntitySystem.Extensions.SyncSquare`1
   - LiteEntitySystem.Extensions.SyncStateMachine`1

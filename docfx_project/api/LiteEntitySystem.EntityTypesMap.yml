@@ -6,6 +6,8 @@ items:
   parent: LiteEntitySystem
   children:
   - LiteEntitySystem.EntityTypesMap.EvaluateEntityClassDataHash
+  - LiteEntitySystem.EntityTypesMap.MaxId
+  - LiteEntitySystem.EntityTypesMap.RegisteredTypes
   langs:
   - csharp
   - vb
@@ -23,6 +25,54 @@ items:
   - System.Object
   derivedClasses:
   - LiteEntitySystem.EntityTypesMap`1
+- uid: LiteEntitySystem.EntityTypesMap.MaxId
+  commentId: F:LiteEntitySystem.EntityTypesMap.MaxId
+  id: MaxId
+  parent: LiteEntitySystem.EntityTypesMap
+  langs:
+  - csharp
+  - vb
+  name: MaxId
+  nameWithType: EntityTypesMap.MaxId
+  fullName: LiteEntitySystem.EntityTypesMap.MaxId
+  type: Field
+  assemblies:
+  - LiteEntitySystem
+  namespace: LiteEntitySystem
+  summary: >-
+    Maximum registered id. Ids start with 1
+
+    Modify only in case when you know what you doing
+  example: []
+  syntax:
+    content: public ushort MaxId
+    return:
+      type: System.UInt16
+    content.vb: Public MaxId As UShort
+- uid: LiteEntitySystem.EntityTypesMap.RegisteredTypes
+  commentId: F:LiteEntitySystem.EntityTypesMap.RegisteredTypes
+  id: RegisteredTypes
+  parent: LiteEntitySystem.EntityTypesMap
+  langs:
+  - csharp
+  - vb
+  name: RegisteredTypes
+  nameWithType: EntityTypesMap.RegisteredTypes
+  fullName: LiteEntitySystem.EntityTypesMap.RegisteredTypes
+  type: Field
+  assemblies:
+  - LiteEntitySystem
+  namespace: LiteEntitySystem
+  summary: >-
+    Currently registered types
+
+    Modify only in case when you know what you doing
+  example: []
+  syntax:
+    content: public readonly Dictionary<Type, RegisteredTypeInfo> RegisteredTypes
+    return:
+      type: System.Collections.Generic.Dictionary{System.Type,LiteEntitySystem.RegisteredTypeInfo}
+    content.vb: Public ReadOnly RegisteredTypes As Dictionary(Of Type, RegisteredTypeInfo)
 - uid: LiteEntitySystem.EntityTypesMap.EvaluateEntityClassDataHash
   commentId: M:LiteEntitySystem.EntityTypesMap.EvaluateEntityClassDataHash
   id: EvaluateEntityClassDataHash
@@ -70,6 +120,133 @@ references:
   name: System
   nameWithType: System
   fullName: System
+- uid: System.UInt16
+  commentId: T:System.UInt16
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.uint16
+  name: ushort
+  nameWithType: ushort
+  fullName: ushort
+  nameWithType.vb: UShort
+  fullName.vb: UShort
+  name.vb: UShort
+- uid: System.Collections.Generic.Dictionary{System.Type,LiteEntitySystem.RegisteredTypeInfo}
+  commentId: T:System.Collections.Generic.Dictionary{System.Type,LiteEntitySystem.RegisteredTypeInfo}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.Dictionary`2
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  name: Dictionary<Type, RegisteredTypeInfo>
+  nameWithType: Dictionary<Type, RegisteredTypeInfo>
+  fullName: System.Collections.Generic.Dictionary<System.Type, LiteEntitySystem.RegisteredTypeInfo>
+  nameWithType.vb: Dictionary(Of Type, RegisteredTypeInfo)
+  fullName.vb: System.Collections.Generic.Dictionary(Of System.Type, LiteEntitySystem.RegisteredTypeInfo)
+  name.vb: Dictionary(Of Type, RegisteredTypeInfo)
+  spec.csharp:
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: <
+  - uid: System.Type
+    name: Type
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.type
+  - name: ','
+  - name: " "
+  - uid: LiteEntitySystem.RegisteredTypeInfo
+    name: RegisteredTypeInfo
+    href: LiteEntitySystem.RegisteredTypeInfo.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.Type
+    name: Type
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.type
+  - name: ','
+  - name: " "
+  - uid: LiteEntitySystem.RegisteredTypeInfo
+    name: RegisteredTypeInfo
+    href: LiteEntitySystem.RegisteredTypeInfo.html
+  - name: )
+- uid: System.Collections.Generic.Dictionary`2
+  commentId: T:System.Collections.Generic.Dictionary`2
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  name: Dictionary<TKey, TValue>
+  nameWithType: Dictionary<TKey, TValue>
+  fullName: System.Collections.Generic.Dictionary<TKey, TValue>
+  nameWithType.vb: Dictionary(Of TKey, TValue)
+  fullName.vb: System.Collections.Generic.Dictionary(Of TKey, TValue)
+  name.vb: Dictionary(Of TKey, TValue)
+  spec.csharp:
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: <
+  - name: TKey
+  - name: ','
+  - name: " "
+  - name: TValue
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.Dictionary`2
+    name: Dictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.dictionary-2
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TKey
+  - name: ','
+  - name: " "
+  - name: TValue
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
 - uid: LiteEntitySystem.EntityTypesMap.EvaluateEntityClassDataHash*
   commentId: Overload:LiteEntitySystem.EntityTypesMap.EvaluateEntityClassDataHash
   href: LiteEntitySystem.EntityTypesMap.html#LiteEntitySystem_EntityTypesMap_EvaluateEntityClassDataHash

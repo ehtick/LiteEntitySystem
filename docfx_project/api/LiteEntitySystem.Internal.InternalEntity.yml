@@ -7,8 +7,10 @@ items:
   children:
   - LiteEntitySystem.Internal.InternalEntity.#ctor(LiteEntitySystem.EntityParams)
   - LiteEntitySystem.Internal.InternalEntity.ClassId
+  - LiteEntitySystem.Internal.InternalEntity.ClassIdName
   - LiteEntitySystem.Internal.InternalEntity.ClientManager
   - LiteEntitySystem.Internal.InternalEntity.CompareTo(LiteEntitySystem.Internal.InternalEntity)
+  - LiteEntitySystem.Internal.InternalEntity.CreationState
   - LiteEntitySystem.Internal.InternalEntity.Destroy
   - LiteEntitySystem.Internal.InternalEntity.EntityManager
   - LiteEntitySystem.Internal.InternalEntity.ExecuteRPC(LiteEntitySystem.RemoteCall@)
@@ -35,7 +37,6 @@ items:
   - LiteEntitySystem.Internal.InternalEntity.OwnerId
   - LiteEntitySystem.Internal.InternalEntity.RegisterRPC(LiteEntitySystem.RPCRegistrator@)
   - LiteEntitySystem.Internal.InternalEntity.ServerManager
-  - LiteEntitySystem.Internal.InternalEntity.State
   - LiteEntitySystem.Internal.InternalEntity.ToString
   - LiteEntitySystem.Internal.InternalEntity.Update
   - LiteEntitySystem.Internal.InternalEntity.Version
@@ -64,6 +65,9 @@ items:
   - System.IComparable{LiteEntitySystem.Internal.InternalEntity}
   inheritedMembers:
   - LiteEntitySystem.Internal.InternalBaseClass.OnSyncRequested
+  extensionMethods:
+  - LiteEntitySystem.Internal.InternalEntity.LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus
+  - LiteEntitySystem.Internal.InternalEntity.LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus
 - uid: LiteEntitySystem.Internal.InternalEntity.ClassId
   commentId: F:LiteEntitySystem.Internal.InternalEntity.ClassId
   id: ClassId
@@ -173,6 +177,29 @@ items:
       type: System.Boolean
     content.vb: Public ReadOnly Property IsClient As Boolean
   overload: LiteEntitySystem.Internal.InternalEntity.IsClient*
+- uid: LiteEntitySystem.Internal.InternalEntity.ClassIdName
+  commentId: P:LiteEntitySystem.Internal.InternalEntity.ClassIdName
+  id: ClassIdName
+  parent: LiteEntitySystem.Internal.InternalEntity
+  langs:
+  - csharp
+  - vb
+  name: ClassIdName
+  nameWithType: InternalEntity.ClassIdName
+  fullName: LiteEntitySystem.Internal.InternalEntity.ClassIdName
+  type: Property
+  assemblies:
+  - LiteEntitySystem
+  namespace: LiteEntitySystem.Internal
+  summary: Entity ClassId name
+  example: []
+  syntax:
+    content: public string ClassIdName { get; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public ReadOnly Property ClassIdName As String
+  overload: LiteEntitySystem.Internal.InternalEntity.ClassIdName*
 - uid: LiteEntitySystem.Internal.InternalEntity.Version
   commentId: F:LiteEntitySystem.Internal.InternalEntity.Version
   id: Version
@@ -452,16 +479,16 @@ items:
       type: System.Boolean
     content.vb: Public ReadOnly Property IsRemoved As Boolean
   overload: LiteEntitySystem.Internal.InternalEntity.IsRemoved*
-- uid: LiteEntitySystem.Internal.InternalEntity.State
-  commentId: P:LiteEntitySystem.Internal.InternalEntity.State
-  id: State
+- uid: LiteEntitySystem.Internal.InternalEntity.CreationState
+  commentId: P:LiteEntitySystem.Internal.InternalEntity.CreationState
+  id: CreationState
   parent: LiteEntitySystem.Internal.InternalEntity
   langs:
   - csharp
   - vb
-  name: State
-  nameWithType: InternalEntity.State
-  fullName: LiteEntitySystem.Internal.InternalEntity.State
+  name: CreationState
+  nameWithType: InternalEntity.CreationState
+  fullName: LiteEntitySystem.Internal.InternalEntity.CreationState
   type: Property
   assemblies:
   - LiteEntitySystem
@@ -469,12 +496,12 @@ items:
   summary: Entity state. New, Constructed, Destroyed, Removed
   example: []
   syntax:
-    content: public EntityState State { get; }
+    content: public EntityState CreationState { get; }
     parameters: []
     return:
       type: LiteEntitySystem.Internal.EntityState
-    content.vb: Public ReadOnly Property State As EntityState
-  overload: LiteEntitySystem.Internal.InternalEntity.State*
+    content.vb: Public ReadOnly Property CreationState As EntityState
+  overload: LiteEntitySystem.Internal.InternalEntity.CreationState*
 - uid: LiteEntitySystem.Internal.InternalEntity.Destroy
   commentId: M:LiteEntitySystem.Internal.InternalEntity.Destroy
   id: Destroy
@@ -979,6 +1006,58 @@ references:
     href: LiteEntitySystem.Internal.InternalBaseClass.html#LiteEntitySystem_Internal_InternalBaseClass_OnSyncRequested
   - name: (
   - name: )
+- uid: LiteEntitySystem.Internal.InternalEntity.LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus
+  commentId: M:LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  parent: LiteEntitySystem.Extensions.LocalMessageBusExtensions
+  definition: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  name: GetLocalMessageBus(InternalEntity)
+  nameWithType: LocalMessageBusExtensions.GetLocalMessageBus(InternalEntity)
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  spec.csharp:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+    name: GetLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  - name: (
+  - uid: LiteEntitySystem.Internal.InternalEntity
+    name: InternalEntity
+    href: LiteEntitySystem.Internal.InternalEntity.html
+  - name: )
+  spec.vb:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+    name: GetLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  - name: (
+  - uid: LiteEntitySystem.Internal.InternalEntity
+    name: InternalEntity
+    href: LiteEntitySystem.Internal.InternalEntity.html
+  - name: )
+- uid: LiteEntitySystem.Internal.InternalEntity.LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus
+  commentId: M:LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  parent: LiteEntitySystem.Extensions.LocalMessageBusExtensions
+  definition: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  name: GetOrCreateLocalMessageBus(InternalEntity)
+  nameWithType: LocalMessageBusExtensions.GetOrCreateLocalMessageBus(InternalEntity)
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  spec.csharp:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+    name: GetOrCreateLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  - name: (
+  - uid: LiteEntitySystem.Internal.InternalEntity
+    name: InternalEntity
+    href: LiteEntitySystem.Internal.InternalEntity.html
+  - name: )
+  spec.vb:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+    name: GetOrCreateLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  - name: (
+  - uid: LiteEntitySystem.Internal.InternalEntity
+    name: InternalEntity
+    href: LiteEntitySystem.Internal.InternalEntity.html
+  - name: )
 - uid: System
   commentId: N:System
   isExternal: true
@@ -1014,6 +1093,83 @@ references:
   - name: " "
   - name: T
   - name: )
+- uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  commentId: M:LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  name: GetLocalMessageBus(InternalEntity)
+  nameWithType: LocalMessageBusExtensions.GetLocalMessageBus(InternalEntity)
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  spec.csharp:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+    name: GetLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  - name: (
+  - uid: LiteEntitySystem.Internal.InternalEntity
+    name: InternalEntity
+    href: LiteEntitySystem.Internal.InternalEntity.html
+  - name: )
+  spec.vb:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+    name: GetLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  - name: (
+  - uid: LiteEntitySystem.Internal.InternalEntity
+    name: InternalEntity
+    href: LiteEntitySystem.Internal.InternalEntity.html
+  - name: )
+- uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions
+  commentId: T:LiteEntitySystem.Extensions.LocalMessageBusExtensions
+  parent: LiteEntitySystem.Extensions
+  href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html
+  name: LocalMessageBusExtensions
+  nameWithType: LocalMessageBusExtensions
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions
+- uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  commentId: M:LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  name: GetOrCreateLocalMessageBus(InternalEntity)
+  nameWithType: LocalMessageBusExtensions.GetOrCreateLocalMessageBus(InternalEntity)
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  spec.csharp:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+    name: GetOrCreateLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  - name: (
+  - uid: LiteEntitySystem.Internal.InternalEntity
+    name: InternalEntity
+    href: LiteEntitySystem.Internal.InternalEntity.html
+  - name: )
+  spec.vb:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+    name: GetOrCreateLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  - name: (
+  - uid: LiteEntitySystem.Internal.InternalEntity
+    name: InternalEntity
+    href: LiteEntitySystem.Internal.InternalEntity.html
+  - name: )
+- uid: LiteEntitySystem.Extensions
+  commentId: N:LiteEntitySystem.Extensions
+  href: LiteEntitySystem.html
+  name: LiteEntitySystem.Extensions
+  nameWithType: LiteEntitySystem.Extensions
+  fullName: LiteEntitySystem.Extensions
+  spec.csharp:
+  - uid: LiteEntitySystem
+    name: LiteEntitySystem
+    href: LiteEntitySystem.html
+  - name: .
+  - uid: LiteEntitySystem.Extensions
+    name: Extensions
+    href: LiteEntitySystem.Extensions.html
+  spec.vb:
+  - uid: LiteEntitySystem
+    name: LiteEntitySystem
+    href: LiteEntitySystem.html
+  - name: .
+  - uid: LiteEntitySystem.Extensions
+    name: Extensions
+    href: LiteEntitySystem.Extensions.html
 - uid: System.UInt16
   commentId: T:System.UInt16
   parent: System
@@ -1061,6 +1217,23 @@ references:
   name: IsClient
   nameWithType: InternalEntity.IsClient
   fullName: LiteEntitySystem.Internal.InternalEntity.IsClient
+- uid: LiteEntitySystem.Internal.InternalEntity.ClassIdName*
+  commentId: Overload:LiteEntitySystem.Internal.InternalEntity.ClassIdName
+  href: LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_ClassIdName
+  name: ClassIdName
+  nameWithType: InternalEntity.ClassIdName
+  fullName: LiteEntitySystem.Internal.InternalEntity.ClassIdName
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
 - uid: System.Byte
   commentId: T:System.Byte
   parent: System
@@ -1152,12 +1325,12 @@ references:
   name: IsRemoved
   nameWithType: InternalEntity.IsRemoved
   fullName: LiteEntitySystem.Internal.InternalEntity.IsRemoved
-- uid: LiteEntitySystem.Internal.InternalEntity.State*
-  commentId: Overload:LiteEntitySystem.Internal.InternalEntity.State
-  href: LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_State
-  name: State
-  nameWithType: InternalEntity.State
-  fullName: LiteEntitySystem.Internal.InternalEntity.State
+- uid: LiteEntitySystem.Internal.InternalEntity.CreationState*
+  commentId: Overload:LiteEntitySystem.Internal.InternalEntity.CreationState
+  href: LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_CreationState
+  name: CreationState
+  nameWithType: InternalEntity.CreationState
+  fullName: LiteEntitySystem.Internal.InternalEntity.CreationState
 - uid: LiteEntitySystem.Internal.EntityState
   commentId: T:LiteEntitySystem.Internal.EntityState
   parent: LiteEntitySystem.Internal
@@ -1636,14 +1809,3 @@ references:
   name: ToString
   nameWithType: InternalEntity.ToString
   fullName: LiteEntitySystem.Internal.InternalEntity.ToString
-- uid: System.String
-  commentId: T:System.String
-  parent: System
-  isExternal: true
-  href: https://learn.microsoft.com/dotnet/api/system.string
-  name: string
-  nameWithType: string
-  fullName: string
-  nameWithType.vb: String
-  fullName.vb: String
-  name.vb: String

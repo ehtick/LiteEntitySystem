@@ -28,6 +28,8 @@ items:
   - System.Object
   - LiteEntitySystem.EntityTypesMap
   inheritedMembers:
+  - LiteEntitySystem.EntityTypesMap.MaxId
+  - LiteEntitySystem.EntityTypesMap.RegisteredTypes
   - LiteEntitySystem.EntityTypesMap.EvaluateEntityClassDataHash
   nameWithType.vb: EntityTypesMap(Of T)
   fullName.vb: LiteEntitySystem.EntityTypesMap(Of T)
@@ -91,6 +93,20 @@ references:
   name: EntityTypesMap
   nameWithType: EntityTypesMap
   fullName: LiteEntitySystem.EntityTypesMap
+- uid: LiteEntitySystem.EntityTypesMap.MaxId
+  commentId: F:LiteEntitySystem.EntityTypesMap.MaxId
+  parent: LiteEntitySystem.EntityTypesMap
+  href: LiteEntitySystem.EntityTypesMap.html#LiteEntitySystem_EntityTypesMap_MaxId
+  name: MaxId
+  nameWithType: EntityTypesMap.MaxId
+  fullName: LiteEntitySystem.EntityTypesMap.MaxId
+- uid: LiteEntitySystem.EntityTypesMap.RegisteredTypes
+  commentId: F:LiteEntitySystem.EntityTypesMap.RegisteredTypes
+  parent: LiteEntitySystem.EntityTypesMap
+  href: LiteEntitySystem.EntityTypesMap.html#LiteEntitySystem_EntityTypesMap_RegisteredTypes
+  name: RegisteredTypes
+  nameWithType: EntityTypesMap.RegisteredTypes
+  fullName: LiteEntitySystem.EntityTypesMap.RegisteredTypes
 - uid: LiteEntitySystem.EntityTypesMap.EvaluateEntityClassDataHash
   commentId: M:LiteEntitySystem.EntityTypesMap.EvaluateEntityClassDataHash
   parent: LiteEntitySystem.EntityTypesMap

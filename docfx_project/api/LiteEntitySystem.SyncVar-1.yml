@@ -10,6 +10,8 @@ items:
   - LiteEntitySystem.SyncVar`1.Equals(`0)
   - LiteEntitySystem.SyncVar`1.GetHashCode
   - LiteEntitySystem.SyncVar`1.InterpolatedValue
+  - LiteEntitySystem.SyncVar`1.SetValueWithoutOnSyncNotification(`0)
+  - LiteEntitySystem.SyncVar`1.Size
   - LiteEntitySystem.SyncVar`1.ToString
   - LiteEntitySystem.SyncVar`1.Value
   - LiteEntitySystem.SyncVar`1.op_Equality(LiteEntitySystem.SyncVar{`0},LiteEntitySystem.SyncVar{`0})
@@ -44,6 +46,27 @@ items:
   nameWithType.vb: SyncVar(Of T)
   fullName.vb: LiteEntitySystem.SyncVar(Of T)
   name.vb: SyncVar(Of T)
+- uid: LiteEntitySystem.SyncVar`1.Size
+  commentId: F:LiteEntitySystem.SyncVar`1.Size
+  id: Size
+  parent: LiteEntitySystem.SyncVar`1
+  langs:
+  - csharp
+  - vb
+  name: Size
+  nameWithType: SyncVar<T>.Size
+  fullName: LiteEntitySystem.SyncVar<T>.Size
+  type: Field
+  assemblies:
+  - LiteEntitySystem
+  namespace: LiteEntitySystem
+  syntax:
+    content: public static readonly int Size
+    return:
+      type: System.Int32
+    content.vb: Public Shared ReadOnly Size As Integer
+  nameWithType.vb: SyncVar(Of T).Size
+  fullName.vb: LiteEntitySystem.SyncVar(Of T).Size
 - uid: LiteEntitySystem.SyncVar`1.InterpolatedValue
   commentId: P:LiteEntitySystem.SyncVar`1.InterpolatedValue
   id: InterpolatedValue
@@ -94,6 +117,32 @@ items:
   overload: LiteEntitySystem.SyncVar`1.Value*
   nameWithType.vb: SyncVar(Of T).Value
   fullName.vb: LiteEntitySystem.SyncVar(Of T).Value
+- uid: LiteEntitySystem.SyncVar`1.SetValueWithoutOnSyncNotification(`0)
+  commentId: M:LiteEntitySystem.SyncVar`1.SetValueWithoutOnSyncNotification(`0)
+  id: SetValueWithoutOnSyncNotification(`0)
+  parent: LiteEntitySystem.SyncVar`1
+  langs:
+  - csharp
+  - vb
+  name: SetValueWithoutOnSyncNotification(T)
+  nameWithType: SyncVar<T>.SetValueWithoutOnSyncNotification(T)
+  fullName: LiteEntitySystem.SyncVar<T>.SetValueWithoutOnSyncNotification(T)
+  type: Method
+  assemblies:
+  - LiteEntitySystem
+  namespace: LiteEntitySystem
+  summary: Set value without triggering local OnSync notifications if there is any
+  example: []
+  syntax:
+    content: public void SetValueWithoutOnSyncNotification(T value)
+    parameters:
+    - id: value
+      type: '{T}'
+      description: ''
+    content.vb: Public Sub SetValueWithoutOnSyncNotification(value As T)
+  overload: LiteEntitySystem.SyncVar`1.SetValueWithoutOnSyncNotification*
+  nameWithType.vb: SyncVar(Of T).SetValueWithoutOnSyncNotification(T)
+  fullName.vb: LiteEntitySystem.SyncVar(Of T).SetValueWithoutOnSyncNotification(T)
 - uid: LiteEntitySystem.SyncVar`1.op_Implicit(LiteEntitySystem.SyncVar{`0})~`0
   commentId: M:LiteEntitySystem.SyncVar`1.op_Implicit(LiteEntitySystem.SyncVar{`0})~`0
   id: op_Implicit(LiteEntitySystem.SyncVar{`0})~`0
@@ -616,6 +665,17 @@ references:
   name: System
   nameWithType: System
   fullName: System
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer
 - uid: LiteEntitySystem.SyncVar`1.InterpolatedValue*
   commentId: Overload:LiteEntitySystem.SyncVar`1.InterpolatedValue
   href: LiteEntitySystem.SyncVar-1.html#LiteEntitySystem_SyncVar_1_InterpolatedValue
@@ -642,6 +702,14 @@ references:
   fullName: LiteEntitySystem.SyncVar<T>.Value
   nameWithType.vb: SyncVar(Of T).Value
   fullName.vb: LiteEntitySystem.SyncVar(Of T).Value
+- uid: LiteEntitySystem.SyncVar`1.SetValueWithoutOnSyncNotification*
+  commentId: Overload:LiteEntitySystem.SyncVar`1.SetValueWithoutOnSyncNotification
+  href: LiteEntitySystem.SyncVar-1.html#LiteEntitySystem_SyncVar_1_SetValueWithoutOnSyncNotification__0_
+  name: SetValueWithoutOnSyncNotification
+  nameWithType: SyncVar<T>.SetValueWithoutOnSyncNotification
+  fullName: LiteEntitySystem.SyncVar<T>.SetValueWithoutOnSyncNotification
+  nameWithType.vb: SyncVar(Of T).SetValueWithoutOnSyncNotification
+  fullName.vb: LiteEntitySystem.SyncVar(Of T).SetValueWithoutOnSyncNotification
 - uid: LiteEntitySystem.SyncVar`1.op_Implicit*
   commentId: Overload:LiteEntitySystem.SyncVar`1.op_Implicit
   name: implicit operator
@@ -752,17 +820,6 @@ references:
   fullName: LiteEntitySystem.SyncVar<T>.GetHashCode
   nameWithType.vb: SyncVar(Of T).GetHashCode
   fullName.vb: LiteEntitySystem.SyncVar(Of T).GetHashCode
-- uid: System.Int32
-  commentId: T:System.Int32
-  parent: System
-  isExternal: true
-  href: https://learn.microsoft.com/dotnet/api/system.int32
-  name: int
-  nameWithType: int
-  fullName: int
-  nameWithType.vb: Integer
-  fullName.vb: Integer
-  name.vb: Integer
 - uid: System.ValueType.Equals(System.Object)
   commentId: M:System.ValueType.Equals(System.Object)
   parent: System.ValueType

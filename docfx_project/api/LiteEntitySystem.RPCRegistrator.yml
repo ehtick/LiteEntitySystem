@@ -55,6 +55,7 @@ items:
       description: Action that will be called when variable changes by sync
     - id: flags
       type: LiteEntitySystem.BindOnChangeFlags
+      description: different bind options
     typeParameters:
     - id: TEntity
     - id: T
@@ -93,6 +94,7 @@ items:
       description: Action that will be called when variable changes by sync
     - id: flags
       type: LiteEntitySystem.BindOnChangeFlags
+      description: different bind options
     typeParameters:
     - id: TEntity
     - id: T
@@ -270,7 +272,10 @@ items:
   assemblies:
   - LiteEntitySystem
   namespace: LiteEntitySystem
-  summary: Creates cached rpc action
+  summary: >-
+    Creates cached rpc action
+
+    This method can be used for virtual methods
   example: []
   syntax:
     content: 'public void CreateRPCAction<TEntity>(Action<TEntity> methodToCall, ref RemoteCall remoteCallHandle, ExecuteFlags flags) where TEntity : InternalEntity'
@@ -305,7 +310,10 @@ items:
   assemblies:
   - LiteEntitySystem
   namespace: LiteEntitySystem
-  summary: Creates cached rpc action with valueType argument
+  summary: >-
+    Creates cached rpc action with valueType argument
+
+    This method can be used for virtual methods
   example: []
   syntax:
     content: 'public void CreateRPCAction<TEntity, T>(Action<TEntity, T> methodToCall, ref RemoteCall<T> remoteCallHandle, ExecuteFlags flags) where TEntity : InternalEntity where T : unmanaged'
@@ -341,7 +349,10 @@ items:
   assemblies:
   - LiteEntitySystem
   namespace: LiteEntitySystem
-  summary: Creates cached rpc action with Span argument
+  summary: >-
+    Creates cached rpc action with Span argument
+
+    This method can be used for virtual methods
   example: []
   syntax:
     content: 'public void CreateRPCAction<TEntity, T>(SpanAction<TEntity, T> methodToCall, ref RemoteCallSpan<T> remoteCallHandle, ExecuteFlags flags) where TEntity : InternalEntity where T : unmanaged'
@@ -377,7 +388,10 @@ items:
   assemblies:
   - LiteEntitySystem
   namespace: LiteEntitySystem
-  summary: Creates cached rpc action with ISpanSerializable argument
+  summary: >-
+    Creates cached rpc action with ISpanSerializable argument
+
+    This method can be used for virtual methods
   example: []
   syntax:
     content: 'public void CreateRPCAction<TEntity, T>(Action<TEntity, T> methodToCall, ref RemoteCallSerializable<T> remoteCallHandle, ExecuteFlags flags) where TEntity : InternalEntity where T : struct, ISpanSerializable'

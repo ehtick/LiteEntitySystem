@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class LiteNetLibExtensions </title>
+      <title>Struct BusSubscription </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class LiteNetLibExtensions ">
+      <meta name="title" content="Struct BusSubscription ">
       
-      
+      <meta name="description" content="Represents a subscription to a message bus channel that can be disposed to unsubscribe.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -80,36 +80,71 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions">
+        <article data-uid="LiteEntitySystem.Extensions.BusSubscription">
 
 
 
-  <h1 id="LiteEntitySystem_Transport_LiteNetLibExtensions" data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions" class="text-break">
-Class LiteNetLibExtensions  
+  <h1 id="LiteEntitySystem_Extensions_BusSubscription" data-uid="LiteEntitySystem.Extensions.BusSubscription" class="text-break">
+Struct BusSubscription  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="LiteEntitySystem.html">LiteEntitySystem</a>.<a class="xref" href="LiteEntitySystem.Transport.html">Transport</a></dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="LiteEntitySystem.html">LiteEntitySystem</a>.<a class="xref" href="LiteEntitySystem.Extensions.html">Extensions</a></dd></dl>
   <dl><dt>Assembly</dt><dd>LiteEntitySystem.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"></div>
+  <div class="markdown summary"><p>Represents a subscription to a message bus channel that can be disposed to unsubscribe.</p>
+</div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static class LiteNetLibExtensions</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly struct BusSubscription : IDisposable</code></pre>
   </div>
 
 
 
 
-  <dl class="typelist inheritance">
-    <dt>Inheritance</dt>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
     <dd>
-      <div><span class="xref">object</span></div>
-      <div><span class="xref">LiteNetLibExtensions</span></div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.idisposable">IDisposable</a></div>
     </dd>
   </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="LiteEntitySystem_Extensions_BusSubscription__ctor_" data-uid="LiteEntitySystem.Extensions.BusSubscription.#ctor*"></a>
+
+  <h3 id="LiteEntitySystem_Extensions_BusSubscription__ctor_System_Action_" data-uid="LiteEntitySystem.Extensions.BusSubscription.#ctor(System.Action)">
+  BusSubscription(Action)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public BusSubscription(Action dispose)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>dispose</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action">Action</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
 
 
 
@@ -123,67 +158,22 @@ Class LiteNetLibExtensions
 </h2>
 
 
-  <a id="LiteEntitySystem_Transport_LiteNetLibExtensions_GetLiteNetLibNetPeer_" data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeer*"></a>
+  <a id="LiteEntitySystem_Extensions_BusSubscription_Dispose_" data-uid="LiteEntitySystem.Extensions.BusSubscription.Dispose*"></a>
 
-  <h3 id="LiteEntitySystem_Transport_LiteNetLibExtensions_GetLiteNetLibNetPeer_LiteEntitySystem_NetPlayer_" data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeer(LiteEntitySystem.NetPlayer)">
-  GetLiteNetLibNetPeer(NetPlayer)
+  <h3 id="LiteEntitySystem_Extensions_BusSubscription_Dispose" data-uid="LiteEntitySystem.Extensions.BusSubscription.Dispose">
+  Dispose()
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Disposes the subscription, unsubscribing the handler from the message bus.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static LiteNetLibNetPeer GetLiteNetLibNetPeer(this NetPlayer player)</code></pre>
+    <pre><code class="lang-csharp hljs">public void Dispose()</code></pre>
   </div>
 
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>player</code> <a class="xref" href="LiteEntitySystem.NetPlayer.html">NetPlayer</a></dt>
-    <dd></dd>
-  </dl>
 
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="LiteEntitySystem.Transport.LiteNetLibNetPeer.html">LiteNetLibNetPeer</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="LiteEntitySystem_Transport_LiteNetLibExtensions_GetLiteNetLibNetPeerFromTag_" data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag*"></a>
-
-  <h3 id="LiteEntitySystem_Transport_LiteNetLibExtensions_GetLiteNetLibNetPeerFromTag_LiteNetLib_LiteNetPeer_" data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetLib.LiteNetPeer)">
-  GetLiteNetLibNetPeerFromTag(LiteNetPeer)
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static LiteNetLibNetPeer GetLiteNetLibNetPeerFromTag(this LiteNetPeer peer)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>peer</code> <span class="xref">LiteNetPeer</span></dt>
-    <dd></dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="LiteEntitySystem.Transport.LiteNetLibNetPeer.html">LiteNetLibNetPeer</a></dt>
-    <dd></dd>
-  </dl>
 
 
 

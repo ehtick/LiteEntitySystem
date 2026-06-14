@@ -124,6 +124,9 @@ items:
   - uid: LiteEntitySystem.RPCRegistrator
     name: RPCRegistrator
     type: Struct
+  - uid: LiteEntitySystem.RegisteredTypeInfo
+    name: RegisteredTypeInfo
+    type: Struct
   - uid: LiteEntitySystem.RemoteCall
     name: RemoteCall
     type: Struct
@@ -216,9 +219,21 @@ items:
   name: LiteEntitySystem.Extensions
   type: Namespace
   items:
+  - uid: LiteEntitySystem.Extensions.BusSubscription
+    name: BusSubscription
+    type: Struct
   - uid: LiteEntitySystem.Extensions.FloatAngle
     name: FloatAngle
     type: Struct
+  - uid: LiteEntitySystem.Extensions.IBusMessage`1
+    name: IBusMessage<TSender>
+    type: Interface
+  - uid: LiteEntitySystem.Extensions.LocalMessageBus
+    name: LocalMessageBus
+    type: Class
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions
+    name: LocalMessageBusExtensions
+    type: Class
   - uid: LiteEntitySystem.Extensions.StateCalls
     name: StateCalls
     type: Struct
@@ -242,6 +257,9 @@ items:
     type: Struct
   - uid: LiteEntitySystem.Extensions.SyncNetSerializable`1
     name: SyncNetSerializable<T>
+    type: Class
+  - uid: LiteEntitySystem.Extensions.SyncPongTimer
+    name: SyncPongTimer
     type: Class
   - uid: LiteEntitySystem.Extensions.SyncQueue`1
     name: SyncQueue<T>

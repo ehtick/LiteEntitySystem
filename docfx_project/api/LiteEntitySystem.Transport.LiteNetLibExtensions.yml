@@ -6,7 +6,7 @@ items:
   parent: LiteEntitySystem.Transport
   children:
   - LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeer(LiteEntitySystem.NetPlayer)
-  - LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetLib.NetPeer)
+  - LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetLib.LiteNetPeer)
   langs:
   - csharp
   - vb
@@ -22,29 +22,29 @@ items:
     content.vb: Public Module LiteNetLibExtensions
   inheritance:
   - System.Object
-- uid: LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetLib.NetPeer)
-  commentId: M:LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetLib.NetPeer)
-  id: GetLiteNetLibNetPeerFromTag(LiteNetLib.NetPeer)
+- uid: LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetLib.LiteNetPeer)
+  commentId: M:LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetLib.LiteNetPeer)
+  id: GetLiteNetLibNetPeerFromTag(LiteNetLib.LiteNetPeer)
   isExtensionMethod: true
   parent: LiteEntitySystem.Transport.LiteNetLibExtensions
   langs:
   - csharp
   - vb
-  name: GetLiteNetLibNetPeerFromTag(NetPeer)
-  nameWithType: LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(NetPeer)
-  fullName: LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetLib.NetPeer)
+  name: GetLiteNetLibNetPeerFromTag(LiteNetPeer)
+  nameWithType: LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetPeer)
+  fullName: LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetLib.LiteNetPeer)
   type: Method
   assemblies:
   - LiteEntitySystem
   namespace: LiteEntitySystem.Transport
   syntax:
-    content: public static LiteNetLibNetPeer GetLiteNetLibNetPeerFromTag(this NetPeer peer)
+    content: public static LiteNetLibNetPeer GetLiteNetLibNetPeerFromTag(this LiteNetPeer peer)
     parameters:
     - id: peer
-      type: LiteNetLib.NetPeer
+      type: LiteNetLib.LiteNetPeer
     return:
       type: LiteEntitySystem.Transport.LiteNetLibNetPeer
-    content.vb: Public Shared Function GetLiteNetLibNetPeerFromTag(peer As NetPeer) As LiteNetLibNetPeer
+    content.vb: Public Shared Function GetLiteNetLibNetPeerFromTag(peer As LiteNetPeer) As LiteNetLibNetPeer
   overload: LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag*
 - uid: LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeer(LiteEntitySystem.NetPlayer)
   commentId: M:LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeer(LiteEntitySystem.NetPlayer)
@@ -112,17 +112,17 @@ references:
   fullName: System
 - uid: LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag*
   commentId: Overload:LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag
-  href: LiteEntitySystem.Transport.LiteNetLibExtensions.html#LiteEntitySystem_Transport_LiteNetLibExtensions_GetLiteNetLibNetPeerFromTag_LiteNetLib_NetPeer_
+  href: LiteEntitySystem.Transport.LiteNetLibExtensions.html#LiteEntitySystem_Transport_LiteNetLibExtensions_GetLiteNetLibNetPeerFromTag_LiteNetLib_LiteNetPeer_
   name: GetLiteNetLibNetPeerFromTag
   nameWithType: LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag
   fullName: LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag
-- uid: LiteNetLib.NetPeer
-  commentId: T:LiteNetLib.NetPeer
+- uid: LiteNetLib.LiteNetPeer
+  commentId: T:LiteNetLib.LiteNetPeer
   parent: LiteNetLib
   isExternal: true
-  name: NetPeer
-  nameWithType: NetPeer
-  fullName: LiteNetLib.NetPeer
+  name: LiteNetPeer
+  nameWithType: LiteNetPeer
+  fullName: LiteNetLib.LiteNetPeer
 - uid: LiteEntitySystem.Transport.LiteNetLibNetPeer
   commentId: T:LiteEntitySystem.Transport.LiteNetLibNetPeer
   parent: LiteEntitySystem.Transport

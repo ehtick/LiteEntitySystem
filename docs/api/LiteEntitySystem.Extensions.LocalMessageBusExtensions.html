@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class LiteNetLibExtensions </title>
+      <title>Class LocalMessageBusExtensions </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class LiteNetLibExtensions ">
+      <meta name="title" content="Class LocalMessageBusExtensions ">
       
-      
+      <meta name="description" content="Extension methods for accessing the local message bus from entities.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -80,24 +80,25 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions">
+        <article data-uid="LiteEntitySystem.Extensions.LocalMessageBusExtensions">
 
 
 
-  <h1 id="LiteEntitySystem_Transport_LiteNetLibExtensions" data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions" class="text-break">
-Class LiteNetLibExtensions  
+  <h1 id="LiteEntitySystem_Extensions_LocalMessageBusExtensions" data-uid="LiteEntitySystem.Extensions.LocalMessageBusExtensions" class="text-break">
+Class LocalMessageBusExtensions  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="LiteEntitySystem.html">LiteEntitySystem</a>.<a class="xref" href="LiteEntitySystem.Transport.html">Transport</a></dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="LiteEntitySystem.html">LiteEntitySystem</a>.<a class="xref" href="LiteEntitySystem.Extensions.html">Extensions</a></dd></dl>
   <dl><dt>Assembly</dt><dd>LiteEntitySystem.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"></div>
+  <div class="markdown summary"><p>Extension methods for accessing the local message bus from entities.</p>
+</div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static class LiteNetLibExtensions</code></pre>
+    <pre><code class="lang-csharp hljs">public static class LocalMessageBusExtensions</code></pre>
   </div>
 
 
@@ -107,7 +108,7 @@ Class LiteNetLibExtensions
     <dt>Inheritance</dt>
     <dd>
       <div><span class="xref">object</span></div>
-      <div><span class="xref">LiteNetLibExtensions</span></div>
+      <div><span class="xref">LocalMessageBusExtensions</span></div>
     </dd>
   </dl>
 
@@ -123,30 +124,33 @@ Class LiteNetLibExtensions
 </h2>
 
 
-  <a id="LiteEntitySystem_Transport_LiteNetLibExtensions_GetLiteNetLibNetPeer_" data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeer*"></a>
+  <a id="LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_" data-uid="LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus*"></a>
 
-  <h3 id="LiteEntitySystem_Transport_LiteNetLibExtensions_GetLiteNetLibNetPeer_LiteEntitySystem_NetPlayer_" data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeer(LiteEntitySystem.NetPlayer)">
-  GetLiteNetLibNetPeer(NetPlayer)
+  <h3 id="LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_EntityManager_" data-uid="LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.EntityManager)">
+  GetLocalMessageBus(EntityManager)
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the local message bus singleton from the entity manager.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static LiteNetLibNetPeer GetLiteNetLibNetPeer(this NetPlayer player)</code></pre>
+    <pre><code class="lang-csharp hljs">public static LocalMessageBus GetLocalMessageBus(this EntityManager ent)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>player</code> <a class="xref" href="LiteEntitySystem.NetPlayer.html">NetPlayer</a></dt>
-    <dd></dd>
+    <dt><code>ent</code> <a class="xref" href="LiteEntitySystem.EntityManager.html">EntityManager</a></dt>
+    <dd><p>The entity to get the message bus from.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="LiteEntitySystem.Transport.LiteNetLibNetPeer.html">LiteNetLibNetPeer</a></dt>
-    <dd></dd>
+    <dt><a class="xref" href="LiteEntitySystem.Extensions.LocalMessageBus.html">LocalMessageBus</a></dt>
+    <dd><p>The local message bus instance, or null if not yet created.</p>
+</dd>
   </dl>
 
 
@@ -159,30 +163,72 @@ Class LiteNetLibExtensions
 
 
 
-  <a id="LiteEntitySystem_Transport_LiteNetLibExtensions_GetLiteNetLibNetPeerFromTag_" data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag*"></a>
+  <a id="LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_" data-uid="LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus*"></a>
 
-  <h3 id="LiteEntitySystem_Transport_LiteNetLibExtensions_GetLiteNetLibNetPeerFromTag_LiteNetLib_LiteNetPeer_" data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetLib.LiteNetPeer)">
-  GetLiteNetLibNetPeerFromTag(LiteNetPeer)
+  <h3 id="LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_" data-uid="LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)">
+  GetLocalMessageBus(InternalEntity)
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the local message bus singleton from the entity manager.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static LiteNetLibNetPeer GetLiteNetLibNetPeerFromTag(this LiteNetPeer peer)</code></pre>
+    <pre><code class="lang-csharp hljs">public static LocalMessageBus GetLocalMessageBus(this InternalEntity ent)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>peer</code> <span class="xref">LiteNetPeer</span></dt>
-    <dd></dd>
+    <dt><code>ent</code> <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html">InternalEntity</a></dt>
+    <dd><p>The entity to get the message bus from.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="LiteEntitySystem.Transport.LiteNetLibNetPeer.html">LiteNetLibNetPeer</a></dt>
-    <dd></dd>
+    <dt><a class="xref" href="LiteEntitySystem.Extensions.LocalMessageBus.html">LocalMessageBus</a></dt>
+    <dd><p>The local message bus instance, or null if not yet created.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_" data-uid="LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus*"></a>
+
+  <h3 id="LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_" data-uid="LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)">
+  GetOrCreateLocalMessageBus(InternalEntity)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or creates a local message bus singleton for the entity manager.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static LocalMessageBus GetOrCreateLocalMessageBus(this InternalEntity ent)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>ent</code> <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html">InternalEntity</a></dt>
+    <dd><p>The entity to get the message bus from.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="LiteEntitySystem.Extensions.LocalMessageBus.html">LocalMessageBus</a></dt>
+    <dd><p>The local message bus instance, creating it if it doesn't exist.</p>
+</dd>
   </dl>
 
 

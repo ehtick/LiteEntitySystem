@@ -5,6 +5,7 @@ items:
   id: ILocalSingletonWithUpdate
   parent: LiteEntitySystem
   children:
+  - LiteEntitySystem.ILocalSingletonWithUpdate.LateUpdate(System.Single)
   - LiteEntitySystem.ILocalSingletonWithUpdate.Update(System.Single)
   - LiteEntitySystem.ILocalSingletonWithUpdate.VisualUpdate(System.Single)
   langs:
@@ -70,6 +71,30 @@ items:
   nameWithType.vb: ILocalSingletonWithUpdate.VisualUpdate(Single)
   fullName.vb: LiteEntitySystem.ILocalSingletonWithUpdate.VisualUpdate(Single)
   name.vb: VisualUpdate(Single)
+- uid: LiteEntitySystem.ILocalSingletonWithUpdate.LateUpdate(System.Single)
+  commentId: M:LiteEntitySystem.ILocalSingletonWithUpdate.LateUpdate(System.Single)
+  id: LateUpdate(System.Single)
+  parent: LiteEntitySystem.ILocalSingletonWithUpdate
+  langs:
+  - csharp
+  - vb
+  name: LateUpdate(float)
+  nameWithType: ILocalSingletonWithUpdate.LateUpdate(float)
+  fullName: LiteEntitySystem.ILocalSingletonWithUpdate.LateUpdate(float)
+  type: Method
+  assemblies:
+  - LiteEntitySystem
+  namespace: LiteEntitySystem
+  syntax:
+    content: void LateUpdate(float dt)
+    parameters:
+    - id: dt
+      type: System.Single
+    content.vb: Sub LateUpdate(dt As Single)
+  overload: LiteEntitySystem.ILocalSingletonWithUpdate.LateUpdate*
+  nameWithType.vb: ILocalSingletonWithUpdate.LateUpdate(Single)
+  fullName.vb: LiteEntitySystem.ILocalSingletonWithUpdate.LateUpdate(Single)
+  name.vb: LateUpdate(Single)
 references:
 - uid: LiteEntitySystem
   commentId: N:LiteEntitySystem
@@ -133,3 +158,9 @@ references:
   name: VisualUpdate
   nameWithType: ILocalSingletonWithUpdate.VisualUpdate
   fullName: LiteEntitySystem.ILocalSingletonWithUpdate.VisualUpdate
+- uid: LiteEntitySystem.ILocalSingletonWithUpdate.LateUpdate*
+  commentId: Overload:LiteEntitySystem.ILocalSingletonWithUpdate.LateUpdate
+  href: LiteEntitySystem.ILocalSingletonWithUpdate.html#LiteEntitySystem_ILocalSingletonWithUpdate_LateUpdate_System_Single_
+  name: LateUpdate
+  nameWithType: ILocalSingletonWithUpdate.LateUpdate
+  fullName: LiteEntitySystem.ILocalSingletonWithUpdate.LateUpdate

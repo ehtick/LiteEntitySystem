@@ -143,10 +143,16 @@ public abstract class AiControllerLogic&lt;T&gt; : AiControllerLogic, IComparabl
       <a class="xref" href="LiteEntitySystem.ControllerLogic.html#LiteEntitySystem_ControllerLogic_BeforeControlledUpdate">ControllerLogic.BeforeControlledUpdate()</a>
     </div>
     <div>
+      <a class="xref" href="LiteEntitySystem.ControllerLogic.html#LiteEntitySystem_ControllerLogic_RegisterRPC_LiteEntitySystem_RPCRegistrator__">ControllerLogic.RegisterRPC(ref RPCRegistrator)</a>
+    </div>
+    <div>
       <a class="xref" href="LiteEntitySystem.ControllerLogic.html#LiteEntitySystem_ControllerLogic_DestroyWithControlledEntity">ControllerLogic.DestroyWithControlledEntity()</a>
     </div>
     <div>
       <a class="xref" href="LiteEntitySystem.ControllerLogic.html#LiteEntitySystem_ControllerLogic_StartControl_LiteEntitySystem_PawnLogic_">ControllerLogic.StartControl(PawnLogic)</a>
+    </div>
+    <div>
+      <a class="xref" href="LiteEntitySystem.ControllerLogic.html#LiteEntitySystem_ControllerLogic_OnControlledEntityChanged_LiteEntitySystem_PawnLogic_">ControllerLogic.OnControlledEntityChanged(PawnLogic)</a>
     </div>
     <div>
       <a class="xref" href="LiteEntitySystem.ControllerLogic.html#LiteEntitySystem_ControllerLogic_StopControl">ControllerLogic.StopControl()</a>
@@ -165,6 +171,9 @@ public abstract class AiControllerLogic&lt;T&gt; : AiControllerLogic, IComparabl
     </div>
     <div>
       <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_IsClient">InternalEntity.IsClient</a>
+    </div>
+    <div>
+      <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_ClassIdName">InternalEntity.ClassIdName</a>
     </div>
     <div>
       <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_Version">InternalEntity.Version</a>
@@ -203,7 +212,7 @@ public abstract class AiControllerLogic&lt;T&gt; : AiControllerLogic, IComparabl
       <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_IsRemoved">InternalEntity.IsRemoved</a>
     </div>
     <div>
-      <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_State">InternalEntity.State</a>
+      <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_CreationState">InternalEntity.CreationState</a>
     </div>
     <div>
       <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_Destroy">InternalEntity.Destroy()</a>
@@ -228,9 +237,6 @@ public abstract class AiControllerLogic&lt;T&gt; : AiControllerLogic, IComparabl
     </div>
     <div>
       <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_OnLateConstructed">InternalEntity.OnLateConstructed()</a>
-    </div>
-    <div>
-      <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_RegisterRPC_LiteEntitySystem_RPCRegistrator__">InternalEntity.RegisterRPC(ref RPCRegistrator)</a>
     </div>
     <div>
       <a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_ExecuteRPC_LiteEntitySystem_RemoteCall__">InternalEntity.ExecuteRPC(in RemoteCall)</a>
@@ -258,6 +264,16 @@ public abstract class AiControllerLogic&lt;T&gt; : AiControllerLogic, IComparabl
     </div>
   </dd></dl>
 
+  <dl class="typelist extensionMethods">
+    <dt>Extension Methods</dt>
+    <dd>
+  <div>
+      <a class="xref" href="LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_">LocalMessageBusExtensions.GetLocalMessageBus(InternalEntity)</a>
+  </div>
+  <div>
+      <a class="xref" href="LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_">LocalMessageBusExtensions.GetOrCreateLocalMessageBus(InternalEntity)</a>
+  </div>
+  </dd></dl>
 
 
 

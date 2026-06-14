@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class LiteNetLibExtensions </title>
+      <title>Struct RegisteredTypeInfo </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class LiteNetLibExtensions ">
+      <meta name="title" content="Struct RegisteredTypeInfo ">
       
-      
+      <meta name="description" content="Information about registered type">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -80,36 +80,30 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions">
+        <article data-uid="LiteEntitySystem.RegisteredTypeInfo">
 
 
 
-  <h1 id="LiteEntitySystem_Transport_LiteNetLibExtensions" data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions" class="text-break">
-Class LiteNetLibExtensions  
+  <h1 id="LiteEntitySystem_RegisteredTypeInfo" data-uid="LiteEntitySystem.RegisteredTypeInfo" class="text-break">
+Struct RegisteredTypeInfo  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="LiteEntitySystem.html">LiteEntitySystem</a>.<a class="xref" href="LiteEntitySystem.Transport.html">Transport</a></dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="LiteEntitySystem.html">LiteEntitySystem</a></dd></dl>
   <dl><dt>Assembly</dt><dd>LiteEntitySystem.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"></div>
+  <div class="markdown summary"><p>Information about registered type</p>
+</div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static class LiteNetLibExtensions</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly struct RegisteredTypeInfo</code></pre>
   </div>
 
 
 
 
-  <dl class="typelist inheritance">
-    <dt>Inheritance</dt>
-    <dd>
-      <div><span class="xref">object</span></div>
-      <div><span class="xref">LiteNetLibExtensions</span></div>
-    </dd>
-  </dl>
 
 
 
@@ -119,14 +113,14 @@ Class LiteNetLibExtensions
 
 
 
-  <h2 class="section" id="methods">Methods
+  <h2 class="section" id="constructors">Constructors
 </h2>
 
 
-  <a id="LiteEntitySystem_Transport_LiteNetLibExtensions_GetLiteNetLibNetPeer_" data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeer*"></a>
+  <a id="LiteEntitySystem_RegisteredTypeInfo__ctor_" data-uid="LiteEntitySystem.RegisteredTypeInfo.#ctor*"></a>
 
-  <h3 id="LiteEntitySystem_Transport_LiteNetLibExtensions_GetLiteNetLibNetPeer_LiteEntitySystem_NetPlayer_" data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeer(LiteEntitySystem.NetPlayer)">
-  GetLiteNetLibNetPeer(NetPlayer)
+  <h3 id="LiteEntitySystem_RegisteredTypeInfo__ctor_System_UInt16_System_String_LiteEntitySystem_EntityConstructor_LiteEntitySystem_Internal_InternalEntity__" data-uid="LiteEntitySystem.RegisteredTypeInfo.#ctor(System.UInt16,System.String,LiteEntitySystem.EntityConstructor{LiteEntitySystem.Internal.InternalEntity})">
+  RegisteredTypeInfo(ushort, string, EntityConstructor&lt;InternalEntity&gt;)
   
   </h3>
 
@@ -134,20 +128,19 @@ Class LiteNetLibExtensions
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static LiteNetLibNetPeer GetLiteNetLibNetPeer(this NetPlayer player)</code></pre>
+    <pre><code class="lang-csharp hljs">public RegisteredTypeInfo(ushort classId, string className, EntityConstructor&lt;InternalEntity&gt; constructor)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>player</code> <a class="xref" href="LiteEntitySystem.NetPlayer.html">NetPlayer</a></dt>
+    <dt><code>classId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>className</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>constructor</code> <span class="xref">EntityConstructor</span>&lt;<a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html">InternalEntity</a>&gt;</dt>
     <dd></dd>
   </dl>
 
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="LiteEntitySystem.Transport.LiteNetLibNetPeer.html">LiteNetLibNetPeer</a></dt>
-    <dd></dd>
-  </dl>
 
 
 
@@ -159,10 +152,13 @@ Class LiteNetLibExtensions
 
 
 
-  <a id="LiteEntitySystem_Transport_LiteNetLibExtensions_GetLiteNetLibNetPeerFromTag_" data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag*"></a>
+  <h2 class="section" id="fields">Fields
+</h2>
 
-  <h3 id="LiteEntitySystem_Transport_LiteNetLibExtensions_GetLiteNetLibNetPeerFromTag_LiteNetLib_LiteNetPeer_" data-uid="LiteEntitySystem.Transport.LiteNetLibExtensions.GetLiteNetLibNetPeerFromTag(LiteNetLib.LiteNetPeer)">
-  GetLiteNetLibNetPeerFromTag(LiteNetPeer)
+
+
+  <h3 id="LiteEntitySystem_RegisteredTypeInfo_ClassId" data-uid="LiteEntitySystem.RegisteredTypeInfo.ClassId">
+  ClassId
   
   </h3>
 
@@ -170,22 +166,77 @@ Class LiteNetLibExtensions
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static LiteNetLibNetPeer GetLiteNetLibNetPeerFromTag(this LiteNetPeer peer)</code></pre>
+    <pre><code class="lang-csharp hljs">public readonly ushort ClassId</code></pre>
   </div>
 
-  <h4 class="section">Parameters</h4>
+
+
+
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><code>peer</code> <span class="xref">LiteNetPeer</span></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
     <dd></dd>
   </dl>
 
-  <h4 class="section">Returns</h4>
+
+
+
+
+
+
+
+
+
+  <h3 id="LiteEntitySystem_RegisteredTypeInfo_ClassName" data-uid="LiteEntitySystem.RegisteredTypeInfo.ClassName">
+  ClassName
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly string ClassName</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="LiteEntitySystem.Transport.LiteNetLibNetPeer.html">LiteNetLibNetPeer</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
     <dd></dd>
   </dl>
 
 
+
+
+
+
+
+
+
+
+  <h3 id="LiteEntitySystem_RegisteredTypeInfo_Constructor" data-uid="LiteEntitySystem.RegisteredTypeInfo.Constructor">
+  Constructor
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly EntityConstructor&lt;InternalEntity&gt; Constructor</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">EntityConstructor</span>&lt;<a class="xref" href="LiteEntitySystem.Internal.InternalEntity.html">InternalEntity</a>&gt;</dt>
+    <dd></dd>
+  </dl>
 
 
 

@@ -4,7 +4,11 @@ items:
   commentId: N:LiteEntitySystem.Extensions
   id: LiteEntitySystem.Extensions
   children:
+  - LiteEntitySystem.Extensions.BusSubscription
   - LiteEntitySystem.Extensions.FloatAngle
+  - LiteEntitySystem.Extensions.IBusMessage`1
+  - LiteEntitySystem.Extensions.LocalMessageBus
+  - LiteEntitySystem.Extensions.LocalMessageBusExtensions
   - LiteEntitySystem.Extensions.StateCalls
   - LiteEntitySystem.Extensions.SyncArray`1
   - LiteEntitySystem.Extensions.SyncDict`2
@@ -13,6 +17,7 @@ items:
   - LiteEntitySystem.Extensions.SyncList`1
   - LiteEntitySystem.Extensions.SyncList`1.SyncListEnumerator
   - LiteEntitySystem.Extensions.SyncNetSerializable`1
+  - LiteEntitySystem.Extensions.SyncPongTimer
   - LiteEntitySystem.Extensions.SyncQueue`1
   - LiteEntitySystem.Extensions.SyncSpanSerializable`1
   - LiteEntitySystem.Extensions.SyncSquare`1
@@ -36,6 +41,52 @@ references:
   name: FloatAngle
   nameWithType: FloatAngle
   fullName: LiteEntitySystem.Extensions.FloatAngle
+- uid: LiteEntitySystem.Extensions.BusSubscription
+  commentId: T:LiteEntitySystem.Extensions.BusSubscription
+  parent: LiteEntitySystem.Extensions
+  href: LiteEntitySystem.Extensions.BusSubscription.html
+  name: BusSubscription
+  nameWithType: BusSubscription
+  fullName: LiteEntitySystem.Extensions.BusSubscription
+- uid: LiteEntitySystem.Extensions.IBusMessage`1
+  commentId: T:LiteEntitySystem.Extensions.IBusMessage`1
+  href: LiteEntitySystem.Extensions.IBusMessage-1.html
+  name: IBusMessage<TSender>
+  nameWithType: IBusMessage<TSender>
+  fullName: LiteEntitySystem.Extensions.IBusMessage<TSender>
+  nameWithType.vb: IBusMessage(Of TSender)
+  fullName.vb: LiteEntitySystem.Extensions.IBusMessage(Of TSender)
+  name.vb: IBusMessage(Of TSender)
+  spec.csharp:
+  - uid: LiteEntitySystem.Extensions.IBusMessage`1
+    name: IBusMessage
+    href: LiteEntitySystem.Extensions.IBusMessage-1.html
+  - name: <
+  - name: TSender
+  - name: '>'
+  spec.vb:
+  - uid: LiteEntitySystem.Extensions.IBusMessage`1
+    name: IBusMessage
+    href: LiteEntitySystem.Extensions.IBusMessage-1.html
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TSender
+  - name: )
+- uid: LiteEntitySystem.Extensions.LocalMessageBus
+  commentId: T:LiteEntitySystem.Extensions.LocalMessageBus
+  parent: LiteEntitySystem.Extensions
+  href: LiteEntitySystem.Extensions.LocalMessageBus.html
+  name: LocalMessageBus
+  nameWithType: LocalMessageBus
+  fullName: LiteEntitySystem.Extensions.LocalMessageBus
+- uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions
+  commentId: T:LiteEntitySystem.Extensions.LocalMessageBusExtensions
+  parent: LiteEntitySystem.Extensions
+  href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html
+  name: LocalMessageBusExtensions
+  nameWithType: LocalMessageBusExtensions
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions
 - uid: LiteEntitySystem.Extensions.SyncArray`1
   commentId: T:LiteEntitySystem.Extensions.SyncArray`1
   href: LiteEntitySystem.Extensions.SyncArray-1.html
@@ -227,6 +278,12 @@ references:
   - name: " "
   - name: T
   - name: )
+- uid: LiteEntitySystem.Extensions.SyncPongTimer
+  commentId: T:LiteEntitySystem.Extensions.SyncPongTimer
+  href: LiteEntitySystem.Extensions.SyncPongTimer.html
+  name: SyncPongTimer
+  nameWithType: SyncPongTimer
+  fullName: LiteEntitySystem.Extensions.SyncPongTimer
 - uid: LiteEntitySystem.Extensions.SyncQueue`1
   commentId: T:LiteEntitySystem.Extensions.SyncQueue`1
   href: LiteEntitySystem.Extensions.SyncQueue-1.html

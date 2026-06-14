@@ -5,6 +5,8 @@ items:
   id: SyncableRPCRegistrator
   parent: LiteEntitySystem
   children:
+  - LiteEntitySystem.SyncableRPCRegistrator.BindOnChange``2(LiteEntitySystem.SyncVar{``1}@,System.Action{``0,``1},LiteEntitySystem.BindOnChangeFlags)
+  - LiteEntitySystem.SyncableRPCRegistrator.BindOnChange``2(``0,LiteEntitySystem.SyncVar{``1}@,System.Action{``1},LiteEntitySystem.BindOnChangeFlags)
   - LiteEntitySystem.SyncableRPCRegistrator.CreateClientAction``1(System.Action{``0},LiteEntitySystem.RemoteCall@)
   - LiteEntitySystem.SyncableRPCRegistrator.CreateClientAction``1(``0,System.Action,LiteEntitySystem.RemoteCall@)
   - LiteEntitySystem.SyncableRPCRegistrator.CreateClientAction``2(LiteEntitySystem.SpanAction{``0,``1},LiteEntitySystem.RemoteCallSpan{``1}@)
@@ -264,6 +266,81 @@ items:
   nameWithType.vb: SyncableRPCRegistrator.CreateClientAction(Of TSyncField, T)(Action(Of TSyncField, T), RemoteCallSerializable(Of T))
   fullName.vb: LiteEntitySystem.SyncableRPCRegistrator.CreateClientAction(Of TSyncField, T)(System.Action(Of TSyncField, T), LiteEntitySystem.RemoteCallSerializable(Of T))
   name.vb: CreateClientAction(Of TSyncField, T)(Action(Of TSyncField, T), RemoteCallSerializable(Of T))
+- uid: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange``2(LiteEntitySystem.SyncVar{``1}@,System.Action{``0,``1},LiteEntitySystem.BindOnChangeFlags)
+  commentId: M:LiteEntitySystem.SyncableRPCRegistrator.BindOnChange``2(LiteEntitySystem.SyncVar{``1}@,System.Action{``0,``1},LiteEntitySystem.BindOnChangeFlags)
+  id: BindOnChange``2(LiteEntitySystem.SyncVar{``1}@,System.Action{``0,``1},LiteEntitySystem.BindOnChangeFlags)
+  parent: LiteEntitySystem.SyncableRPCRegistrator
+  langs:
+  - csharp
+  - vb
+  name: BindOnChange<TSyncField, T>(ref SyncVar<T>, Action<TSyncField, T>, BindOnChangeFlags)
+  nameWithType: SyncableRPCRegistrator.BindOnChange<TSyncField, T>(ref SyncVar<T>, Action<TSyncField, T>, BindOnChangeFlags)
+  fullName: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange<TSyncField, T>(ref LiteEntitySystem.SyncVar<T>, System.Action<TSyncField, T>, LiteEntitySystem.BindOnChangeFlags)
+  type: Method
+  assemblies:
+  - LiteEntitySystem
+  namespace: LiteEntitySystem
+  summary: Bind notification of SyncVar changes to action
+  example: []
+  syntax:
+    content: 'public void BindOnChange<TSyncField, T>(ref SyncVar<T> syncVar, Action<TSyncField, T> onChangedAction, BindOnChangeFlags flags = BindOnChangeFlags.ExecuteOnSync) where TSyncField : SyncableField where T : unmanaged'
+    parameters:
+    - id: syncVar
+      type: LiteEntitySystem.SyncVar{{T}}
+      description: Variable to bind
+    - id: onChangedAction
+      type: System.Action{{TSyncField},{T}}
+      description: Action that will be called when variable changes by sync
+    - id: flags
+      type: LiteEntitySystem.BindOnChangeFlags
+      description: different bind options
+    typeParameters:
+    - id: TSyncField
+    - id: T
+    content.vb: Public Sub BindOnChange(Of TSyncField As SyncableField, T As Structure)(syncVar As SyncVar(Of T), onChangedAction As Action(Of TSyncField, T), flags As BindOnChangeFlags = BindOnChangeFlags.ExecuteOnSync)
+  overload: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange*
+  nameWithType.vb: SyncableRPCRegistrator.BindOnChange(Of TSyncField, T)(SyncVar(Of T), Action(Of TSyncField, T), BindOnChangeFlags)
+  fullName.vb: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange(Of TSyncField, T)(LiteEntitySystem.SyncVar(Of T), System.Action(Of TSyncField, T), LiteEntitySystem.BindOnChangeFlags)
+  name.vb: BindOnChange(Of TSyncField, T)(SyncVar(Of T), Action(Of TSyncField, T), BindOnChangeFlags)
+- uid: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange``2(``0,LiteEntitySystem.SyncVar{``1}@,System.Action{``1},LiteEntitySystem.BindOnChangeFlags)
+  commentId: M:LiteEntitySystem.SyncableRPCRegistrator.BindOnChange``2(``0,LiteEntitySystem.SyncVar{``1}@,System.Action{``1},LiteEntitySystem.BindOnChangeFlags)
+  id: BindOnChange``2(``0,LiteEntitySystem.SyncVar{``1}@,System.Action{``1},LiteEntitySystem.BindOnChangeFlags)
+  parent: LiteEntitySystem.SyncableRPCRegistrator
+  langs:
+  - csharp
+  - vb
+  name: BindOnChange<TSyncField, T>(TSyncField, ref SyncVar<T>, Action<T>, BindOnChangeFlags)
+  nameWithType: SyncableRPCRegistrator.BindOnChange<TSyncField, T>(TSyncField, ref SyncVar<T>, Action<T>, BindOnChangeFlags)
+  fullName: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange<TSyncField, T>(TSyncField, ref LiteEntitySystem.SyncVar<T>, System.Action<T>, LiteEntitySystem.BindOnChangeFlags)
+  type: Method
+  assemblies:
+  - LiteEntitySystem
+  namespace: LiteEntitySystem
+  summary: Bind notification of SyncVar changes to action
+  example: []
+  syntax:
+    content: 'public void BindOnChange<TSyncField, T>(TSyncField self, ref SyncVar<T> syncVar, Action<T> onChangedAction, BindOnChangeFlags flags = BindOnChangeFlags.ExecuteOnSync) where TSyncField : SyncableField where T : unmanaged'
+    parameters:
+    - id: self
+      type: '{TSyncField}'
+      description: Target entity for binding
+    - id: syncVar
+      type: LiteEntitySystem.SyncVar{{T}}
+      description: Variable to bind
+    - id: onChangedAction
+      type: System.Action{{T}}
+      description: Action that will be called when variable changes by sync
+    - id: flags
+      type: LiteEntitySystem.BindOnChangeFlags
+      description: different bind options
+    typeParameters:
+    - id: TSyncField
+    - id: T
+    content.vb: Public Sub BindOnChange(Of TSyncField As SyncableField, T As Structure)(self As TSyncField, syncVar As SyncVar(Of T), onChangedAction As Action(Of T), flags As BindOnChangeFlags = BindOnChangeFlags.ExecuteOnSync)
+  overload: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange*
+  nameWithType.vb: SyncableRPCRegistrator.BindOnChange(Of TSyncField, T)(TSyncField, SyncVar(Of T), Action(Of T), BindOnChangeFlags)
+  fullName.vb: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange(Of TSyncField, T)(TSyncField, LiteEntitySystem.SyncVar(Of T), System.Action(Of T), LiteEntitySystem.BindOnChangeFlags)
+  name.vb: BindOnChange(Of TSyncField, T)(TSyncField, SyncVar(Of T), Action(Of T), BindOnChangeFlags)
 references:
 - uid: LiteEntitySystem
   commentId: N:LiteEntitySystem
@@ -721,6 +798,72 @@ references:
   - name: " "
   - name: TCaller
   - name: ','
+  - name: " "
+  - name: T
+  - name: )
+- uid: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange*
+  commentId: Overload:LiteEntitySystem.SyncableRPCRegistrator.BindOnChange
+  href: LiteEntitySystem.SyncableRPCRegistrator.html#LiteEntitySystem_SyncableRPCRegistrator_BindOnChange__2_LiteEntitySystem_SyncVar___1___System_Action___0___1__LiteEntitySystem_BindOnChangeFlags_
+  name: BindOnChange
+  nameWithType: SyncableRPCRegistrator.BindOnChange
+  fullName: LiteEntitySystem.SyncableRPCRegistrator.BindOnChange
+- uid: LiteEntitySystem.SyncVar{{T}}
+  commentId: T:LiteEntitySystem.SyncVar{``1}
+  parent: LiteEntitySystem
+  definition: LiteEntitySystem.SyncVar`1
+  href: LiteEntitySystem.SyncVar-1.html
+  name: SyncVar<T>
+  nameWithType: SyncVar<T>
+  fullName: LiteEntitySystem.SyncVar<T>
+  nameWithType.vb: SyncVar(Of T)
+  fullName.vb: LiteEntitySystem.SyncVar(Of T)
+  name.vb: SyncVar(Of T)
+  spec.csharp:
+  - uid: LiteEntitySystem.SyncVar`1
+    name: SyncVar
+    href: LiteEntitySystem.SyncVar-1.html
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: LiteEntitySystem.SyncVar`1
+    name: SyncVar
+    href: LiteEntitySystem.SyncVar-1.html
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: LiteEntitySystem.BindOnChangeFlags
+  commentId: T:LiteEntitySystem.BindOnChangeFlags
+  parent: LiteEntitySystem
+  href: LiteEntitySystem.BindOnChangeFlags.html
+  name: BindOnChangeFlags
+  nameWithType: BindOnChangeFlags
+  fullName: LiteEntitySystem.BindOnChangeFlags
+- uid: LiteEntitySystem.SyncVar`1
+  commentId: T:LiteEntitySystem.SyncVar`1
+  parent: LiteEntitySystem
+  href: LiteEntitySystem.SyncVar-1.html
+  name: SyncVar<T>
+  nameWithType: SyncVar<T>
+  fullName: LiteEntitySystem.SyncVar<T>
+  nameWithType.vb: SyncVar(Of T)
+  fullName.vb: LiteEntitySystem.SyncVar(Of T)
+  name.vb: SyncVar(Of T)
+  spec.csharp:
+  - uid: LiteEntitySystem.SyncVar`1
+    name: SyncVar
+    href: LiteEntitySystem.SyncVar-1.html
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: LiteEntitySystem.SyncVar`1
+    name: SyncVar
+    href: LiteEntitySystem.SyncVar-1.html
+  - name: (
+  - name: Of
   - name: " "
   - name: T
   - name: )

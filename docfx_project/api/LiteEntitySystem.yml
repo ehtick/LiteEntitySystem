@@ -44,6 +44,7 @@ items:
   - LiteEntitySystem.PawnLogic
   - LiteEntitySystem.PredictableEntityLogic
   - LiteEntitySystem.RPCRegistrator
+  - LiteEntitySystem.RegisteredTypeInfo
   - LiteEntitySystem.RemoteCall
   - LiteEntitySystem.RemoteCallSerializable`1
   - LiteEntitySystem.RemoteCallSpan`1
@@ -250,6 +251,12 @@ references:
   name: EntitySharedReference
   nameWithType: EntitySharedReference
   fullName: LiteEntitySystem.EntitySharedReference
+- uid: LiteEntitySystem.RegisteredTypeInfo
+  commentId: T:LiteEntitySystem.RegisteredTypeInfo
+  href: LiteEntitySystem.RegisteredTypeInfo.html
+  name: RegisteredTypeInfo
+  nameWithType: RegisteredTypeInfo
+  fullName: LiteEntitySystem.RegisteredTypeInfo
 - uid: LiteEntitySystem.EntityTypesMap
   commentId: T:LiteEntitySystem.EntityTypesMap
   parent: LiteEntitySystem

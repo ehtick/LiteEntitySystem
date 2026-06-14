@@ -22,6 +22,7 @@ items:
   - LiteEntitySystem.ServerEntityManager.GetPlayerController(System.Byte)
   - LiteEntitySystem.ServerEntityManager.MaxStoredInputs
   - LiteEntitySystem.ServerEntityManager.OnLogicTick
+  - LiteEntitySystem.ServerEntityManager.PlayerResyncTimeout
   - LiteEntitySystem.ServerEntityManager.PlayersCount
   - LiteEntitySystem.ServerEntityManager.RemovePlayer(LiteEntitySystem.NetPlayer)
   - LiteEntitySystem.ServerEntityManager.RemovePlayer(LiteEntitySystem.Transport.AbstractNetPeer)
@@ -91,6 +92,8 @@ items:
   - LiteEntitySystem.EntityManager.EnableLagCompensation(LiteEntitySystem.NetPlayer)
   - LiteEntitySystem.EntityManager.DisableLagCompensation
   - LiteEntitySystem.EntityManager.Update
+  extensionMethods:
+  - LiteEntitySystem.EntityManager.LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus
 - uid: LiteEntitySystem.ServerEntityManager.MaxStoredInputs
   commentId: F:LiteEntitySystem.ServerEntityManager.MaxStoredInputs
   id: MaxStoredInputs
@@ -133,6 +136,27 @@ items:
       type: System.Int32
     content.vb: Public ReadOnly Property PlayersCount As Integer
   overload: LiteEntitySystem.ServerEntityManager.PlayersCount*
+- uid: LiteEntitySystem.ServerEntityManager.PlayerResyncTimeout
+  commentId: F:LiteEntitySystem.ServerEntityManager.PlayerResyncTimeout
+  id: PlayerResyncTimeout
+  parent: LiteEntitySystem.ServerEntityManager
+  langs:
+  - csharp
+  - vb
+  name: PlayerResyncTimeout
+  nameWithType: ServerEntityManager.PlayerResyncTimeout
+  fullName: LiteEntitySystem.ServerEntityManager.PlayerResyncTimeout
+  type: Field
+  assemblies:
+  - LiteEntitySystem
+  namespace: LiteEntitySystem
+  summary: Timeout after which player will receive baseline state if player cannot receive big partial state
+  example: []
+  syntax:
+    content: public float PlayerResyncTimeout
+    return:
+      type: System.Single
+    content.vb: Public PlayerResyncTimeout As Single
 - uid: LiteEntitySystem.ServerEntityManager.SendRate
   commentId: F:LiteEntitySystem.ServerEntityManager.SendRate
   id: SendRate
@@ -602,7 +626,7 @@ items:
       description: pawn that will be controlled
     - id: initMethod
       type: System.Action{{T}}
-      description: Method that will be called after entity construction
+      description: Method that will be called before entity OnConstructed
     typeParameters:
     - id: T
       description: Entity type
@@ -635,7 +659,7 @@ items:
     parameters:
     - id: initMethod
       type: System.Action{{T}}
-      description: Method that will be called after entity construction
+      description: Method that will be called before entity OnConstructed
     typeParameters:
     - id: T
       description: Entity type
@@ -668,7 +692,7 @@ items:
     parameters:
     - id: initMethod
       type: System.Action{{T}}
-      description: Method that will be called after entity construction
+      description: Method that will be called before entity OnConstructed
     typeParameters:
     - id: T
       description: Entity type
@@ -701,7 +725,7 @@ items:
     parameters:
     - id: initMethod
       type: System.Action{{T}}
-      description: Method that will be called after entity construction
+      description: Method that will be called before entity OnConstructed
     typeParameters:
     - id: T
       description: Entity type
@@ -737,7 +761,7 @@ items:
       description: Parent entity
     - id: initMethod
       type: System.Action{{T}}
-      description: Method that will be called after entity construction
+      description: Method that will be called before entity OnConstructed
     typeParameters:
     - id: T
       description: Entity type
@@ -1568,6 +1592,32 @@ references:
     href: LiteEntitySystem.EntityManager.html#LiteEntitySystem_EntityManager_Update
   - name: (
   - name: )
+- uid: LiteEntitySystem.EntityManager.LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus
+  commentId: M:LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.EntityManager)
+  parent: LiteEntitySystem.Extensions.LocalMessageBusExtensions
+  definition: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.EntityManager)
+  href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_EntityManager_
+  name: GetLocalMessageBus(EntityManager)
+  nameWithType: LocalMessageBusExtensions.GetLocalMessageBus(EntityManager)
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.EntityManager)
+  spec.csharp:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.EntityManager)
+    name: GetLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_EntityManager_
+  - name: (
+  - uid: LiteEntitySystem.EntityManager
+    name: EntityManager
+    href: LiteEntitySystem.EntityManager.html
+  - name: )
+  spec.vb:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.EntityManager)
+    name: GetLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_EntityManager_
+  - name: (
+  - uid: LiteEntitySystem.EntityManager
+    name: EntityManager
+    href: LiteEntitySystem.EntityManager.html
+  - name: )
 - uid: System
   commentId: N:System
   isExternal: true
@@ -1756,6 +1806,59 @@ references:
   - name: (
   - name: T
   - name: )
+- uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.EntityManager)
+  commentId: M:LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.EntityManager)
+  href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_EntityManager_
+  name: GetLocalMessageBus(EntityManager)
+  nameWithType: LocalMessageBusExtensions.GetLocalMessageBus(EntityManager)
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.EntityManager)
+  spec.csharp:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.EntityManager)
+    name: GetLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_EntityManager_
+  - name: (
+  - uid: LiteEntitySystem.EntityManager
+    name: EntityManager
+    href: LiteEntitySystem.EntityManager.html
+  - name: )
+  spec.vb:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.EntityManager)
+    name: GetLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_EntityManager_
+  - name: (
+  - uid: LiteEntitySystem.EntityManager
+    name: EntityManager
+    href: LiteEntitySystem.EntityManager.html
+  - name: )
+- uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions
+  commentId: T:LiteEntitySystem.Extensions.LocalMessageBusExtensions
+  parent: LiteEntitySystem.Extensions
+  href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html
+  name: LocalMessageBusExtensions
+  nameWithType: LocalMessageBusExtensions
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions
+- uid: LiteEntitySystem.Extensions
+  commentId: N:LiteEntitySystem.Extensions
+  href: LiteEntitySystem.html
+  name: LiteEntitySystem.Extensions
+  nameWithType: LiteEntitySystem.Extensions
+  fullName: LiteEntitySystem.Extensions
+  spec.csharp:
+  - uid: LiteEntitySystem
+    name: LiteEntitySystem
+    href: LiteEntitySystem.html
+  - name: .
+  - uid: LiteEntitySystem.Extensions
+    name: Extensions
+    href: LiteEntitySystem.Extensions.html
+  spec.vb:
+  - uid: LiteEntitySystem
+    name: LiteEntitySystem
+    href: LiteEntitySystem.html
+  - name: .
+  - uid: LiteEntitySystem.Extensions
+    name: Extensions
+    href: LiteEntitySystem.Extensions.html
 - uid: System.Int32
   commentId: T:System.Int32
   parent: System
@@ -1773,6 +1876,17 @@ references:
   name: PlayersCount
   nameWithType: ServerEntityManager.PlayersCount
   fullName: LiteEntitySystem.ServerEntityManager.PlayersCount
+- uid: System.Single
+  commentId: T:System.Single
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.single
+  name: float
+  nameWithType: float
+  fullName: float
+  nameWithType.vb: Single
+  fullName.vb: Single
+  name.vb: Single
 - uid: LiteEntitySystem.ServerSendRate
   commentId: T:LiteEntitySystem.ServerSendRate
   parent: LiteEntitySystem

@@ -5,7 +5,7 @@ items:
   id: LiteNetLibNetPeer
   parent: LiteEntitySystem.Transport
   children:
-  - LiteEntitySystem.Transport.LiteNetLibNetPeer.#ctor(LiteNetLib.NetPeer,System.Boolean)
+  - LiteEntitySystem.Transport.LiteNetLibNetPeer.#ctor(LiteNetLib.LiteNetPeer,System.Boolean)
   - LiteEntitySystem.Transport.LiteNetLibNetPeer.GetMaxUnreliablePacketSize
   - LiteEntitySystem.Transport.LiteNetLibNetPeer.NetPeer
   - LiteEntitySystem.Transport.LiteNetLibNetPeer.SendReliableOrdered(System.ReadOnlySpan{System.Byte})
@@ -43,36 +43,36 @@ items:
   - LiteEntitySystem
   namespace: LiteEntitySystem.Transport
   syntax:
-    content: public readonly NetPeer NetPeer
+    content: public readonly LiteNetPeer NetPeer
     return:
-      type: LiteNetLib.NetPeer
-    content.vb: Public ReadOnly NetPeer As NetPeer
-- uid: LiteEntitySystem.Transport.LiteNetLibNetPeer.#ctor(LiteNetLib.NetPeer,System.Boolean)
-  commentId: M:LiteEntitySystem.Transport.LiteNetLibNetPeer.#ctor(LiteNetLib.NetPeer,System.Boolean)
-  id: '#ctor(LiteNetLib.NetPeer,System.Boolean)'
+      type: LiteNetLib.LiteNetPeer
+    content.vb: Public ReadOnly NetPeer As LiteNetPeer
+- uid: LiteEntitySystem.Transport.LiteNetLibNetPeer.#ctor(LiteNetLib.LiteNetPeer,System.Boolean)
+  commentId: M:LiteEntitySystem.Transport.LiteNetLibNetPeer.#ctor(LiteNetLib.LiteNetPeer,System.Boolean)
+  id: '#ctor(LiteNetLib.LiteNetPeer,System.Boolean)'
   parent: LiteEntitySystem.Transport.LiteNetLibNetPeer
   langs:
   - csharp
   - vb
-  name: LiteNetLibNetPeer(NetPeer, bool)
-  nameWithType: LiteNetLibNetPeer.LiteNetLibNetPeer(NetPeer, bool)
-  fullName: LiteEntitySystem.Transport.LiteNetLibNetPeer.LiteNetLibNetPeer(LiteNetLib.NetPeer, bool)
+  name: LiteNetLibNetPeer(LiteNetPeer, bool)
+  nameWithType: LiteNetLibNetPeer.LiteNetLibNetPeer(LiteNetPeer, bool)
+  fullName: LiteEntitySystem.Transport.LiteNetLibNetPeer.LiteNetLibNetPeer(LiteNetLib.LiteNetPeer, bool)
   type: Constructor
   assemblies:
   - LiteEntitySystem
   namespace: LiteEntitySystem.Transport
   syntax:
-    content: public LiteNetLibNetPeer(NetPeer netPeer, bool assignToTag)
+    content: public LiteNetLibNetPeer(LiteNetPeer netPeer, bool assignToTag)
     parameters:
     - id: netPeer
-      type: LiteNetLib.NetPeer
+      type: LiteNetLib.LiteNetPeer
     - id: assignToTag
       type: System.Boolean
-    content.vb: Public Sub New(netPeer As NetPeer, assignToTag As Boolean)
+    content.vb: Public Sub New(netPeer As LiteNetPeer, assignToTag As Boolean)
   overload: LiteEntitySystem.Transport.LiteNetLibNetPeer.#ctor*
-  nameWithType.vb: LiteNetLibNetPeer.New(NetPeer, Boolean)
-  fullName.vb: LiteEntitySystem.Transport.LiteNetLibNetPeer.New(LiteNetLib.NetPeer, Boolean)
-  name.vb: New(NetPeer, Boolean)
+  nameWithType.vb: LiteNetLibNetPeer.New(LiteNetPeer, Boolean)
+  fullName.vb: LiteEntitySystem.Transport.LiteNetLibNetPeer.New(LiteNetLib.LiteNetPeer, Boolean)
+  name.vb: New(LiteNetPeer, Boolean)
 - uid: LiteEntitySystem.Transport.LiteNetLibNetPeer.TriggerSend
   commentId: M:LiteEntitySystem.Transport.LiteNetLibNetPeer.TriggerSend
   id: TriggerSend
@@ -238,13 +238,13 @@ references:
   name: System
   nameWithType: System
   fullName: System
-- uid: LiteNetLib.NetPeer
-  commentId: T:LiteNetLib.NetPeer
+- uid: LiteNetLib.LiteNetPeer
+  commentId: T:LiteNetLib.LiteNetPeer
   parent: LiteNetLib
   isExternal: true
-  name: NetPeer
-  nameWithType: NetPeer
-  fullName: LiteNetLib.NetPeer
+  name: LiteNetPeer
+  nameWithType: LiteNetPeer
+  fullName: LiteNetLib.LiteNetPeer
 - uid: LiteNetLib
   commentId: N:LiteNetLib
   isExternal: true
@@ -253,7 +253,7 @@ references:
   fullName: LiteNetLib
 - uid: LiteEntitySystem.Transport.LiteNetLibNetPeer.#ctor*
   commentId: Overload:LiteEntitySystem.Transport.LiteNetLibNetPeer.#ctor
-  href: LiteEntitySystem.Transport.LiteNetLibNetPeer.html#LiteEntitySystem_Transport_LiteNetLibNetPeer__ctor_LiteNetLib_NetPeer_System_Boolean_
+  href: LiteEntitySystem.Transport.LiteNetLibNetPeer.html#LiteEntitySystem_Transport_LiteNetLibNetPeer__ctor_LiteNetLib_LiteNetPeer_System_Boolean_
   name: LiteNetLibNetPeer
   nameWithType: LiteNetLibNetPeer.LiteNetLibNetPeer
   fullName: LiteEntitySystem.Transport.LiteNetLibNetPeer.LiteNetLibNetPeer

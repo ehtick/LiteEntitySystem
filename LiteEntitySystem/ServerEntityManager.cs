@@ -6,7 +6,6 @@ using LiteNetLib;
 using LiteEntitySystem.Internal;
 using LiteEntitySystem.Transport;
 using LiteNetLib.Utils;
-using UnityEngine;
 
 namespace LiteEntitySystem
 {

@@ -10,6 +10,8 @@ items:
   - LiteEntitySystem.ControllerLogic.DestroyWithControlledEntity
   - LiteEntitySystem.ControllerLogic.GetControlledEntity``1
   - LiteEntitySystem.ControllerLogic.IsBot
+  - LiteEntitySystem.ControllerLogic.OnControlledEntityChanged(LiteEntitySystem.PawnLogic)
+  - LiteEntitySystem.ControllerLogic.RegisterRPC(LiteEntitySystem.RPCRegistrator@)
   - LiteEntitySystem.ControllerLogic.StartControl(LiteEntitySystem.PawnLogic)
   - LiteEntitySystem.ControllerLogic.StopControl
   langs:
@@ -48,6 +50,7 @@ items:
   - LiteEntitySystem.Internal.InternalEntity.EntityManager
   - LiteEntitySystem.Internal.InternalEntity.IsServer
   - LiteEntitySystem.Internal.InternalEntity.IsClient
+  - LiteEntitySystem.Internal.InternalEntity.ClassIdName
   - LiteEntitySystem.Internal.InternalEntity.Version
   - LiteEntitySystem.Internal.InternalEntity.IsDestroyed
   - LiteEntitySystem.Internal.InternalEntity.IsLocalControlled
@@ -60,7 +63,7 @@ items:
   - LiteEntitySystem.Internal.InternalEntity.IsSingleton
   - LiteEntitySystem.Internal.InternalEntity.IsConstructed
   - LiteEntitySystem.Internal.InternalEntity.IsRemoved
-  - LiteEntitySystem.Internal.InternalEntity.State
+  - LiteEntitySystem.Internal.InternalEntity.CreationState
   - LiteEntitySystem.Internal.InternalEntity.Destroy
   - LiteEntitySystem.Internal.InternalEntity.OnDestroy
   - LiteEntitySystem.Internal.InternalEntity.Update
@@ -69,7 +72,6 @@ items:
   - LiteEntitySystem.Internal.InternalEntity.VisualUpdate
   - LiteEntitySystem.Internal.InternalEntity.OnConstructed
   - LiteEntitySystem.Internal.InternalEntity.OnLateConstructed
-  - LiteEntitySystem.Internal.InternalEntity.RegisterRPC(LiteEntitySystem.RPCRegistrator@)
   - LiteEntitySystem.Internal.InternalEntity.ExecuteRPC(LiteEntitySystem.RemoteCall@)
   - LiteEntitySystem.Internal.InternalEntity.ExecuteRPC``1(LiteEntitySystem.RemoteCall{{T}}@,{T})
   - LiteEntitySystem.Internal.InternalEntity.ExecuteRPC``1(LiteEntitySystem.RemoteCallSpan{{T}}@,System.ReadOnlySpan{{T}})
@@ -78,6 +80,9 @@ items:
   - LiteEntitySystem.Internal.InternalEntity.GetHashCode
   - LiteEntitySystem.Internal.InternalEntity.ToString
   - LiteEntitySystem.Internal.InternalBaseClass.OnSyncRequested
+  extensionMethods:
+  - LiteEntitySystem.Internal.InternalEntity.LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus
+  - LiteEntitySystem.Internal.InternalEntity.LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus
   attributes:
   - type: LiteEntitySystem.EntityFlagsAttribute
     ctor: LiteEntitySystem.EntityFlagsAttribute.#ctor(LiteEntitySystem.EntityFlags)
@@ -121,12 +126,16 @@ items:
   assemblies:
   - LiteEntitySystem
   namespace: LiteEntitySystem
+  summary: Controlled pawn
+  example: []
   syntax:
     content: 'public T GetControlledEntity<T>() where T : PawnLogic'
     typeParameters:
     - id: T
+      description: pawn type
     return:
       type: '{T}'
+      description: controlled pawn
     content.vb: Public Function GetControlledEntity(Of T As PawnLogic)() As T
   overload: LiteEntitySystem.ControllerLogic.GetControlledEntity*
   nameWithType.vb: ControllerLogic.GetControlledEntity(Of T)()
@@ -152,6 +161,34 @@ items:
     content: protected virtual void BeforeControlledUpdate()
     content.vb: Protected Overridable Sub BeforeControlledUpdate()
   overload: LiteEntitySystem.ControllerLogic.BeforeControlledUpdate*
+- uid: LiteEntitySystem.ControllerLogic.RegisterRPC(LiteEntitySystem.RPCRegistrator@)
+  commentId: M:LiteEntitySystem.ControllerLogic.RegisterRPC(LiteEntitySystem.RPCRegistrator@)
+  id: RegisterRPC(LiteEntitySystem.RPCRegistrator@)
+  parent: LiteEntitySystem.ControllerLogic
+  langs:
+  - csharp
+  - vb
+  name: RegisterRPC(ref RPCRegistrator)
+  nameWithType: ControllerLogic.RegisterRPC(ref RPCRegistrator)
+  fullName: LiteEntitySystem.ControllerLogic.RegisterRPC(ref LiteEntitySystem.RPCRegistrator)
+  type: Method
+  assemblies:
+  - LiteEntitySystem
+  namespace: LiteEntitySystem
+  summary: Method for registering RPCs and OnChange notifications
+  example: []
+  syntax:
+    content: protected override void RegisterRPC(ref RPCRegistrator r)
+    parameters:
+    - id: r
+      type: LiteEntitySystem.RPCRegistrator
+      description: ''
+    content.vb: Protected Overrides Sub RegisterRPC(r As RPCRegistrator)
+  overridden: LiteEntitySystem.Internal.InternalEntity.RegisterRPC(LiteEntitySystem.RPCRegistrator@)
+  overload: LiteEntitySystem.ControllerLogic.RegisterRPC*
+  nameWithType.vb: ControllerLogic.RegisterRPC(RPCRegistrator)
+  fullName.vb: LiteEntitySystem.ControllerLogic.RegisterRPC(LiteEntitySystem.RPCRegistrator)
+  name.vb: RegisterRPC(RPCRegistrator)
 - uid: LiteEntitySystem.ControllerLogic.DestroyWithControlledEntity
   commentId: M:LiteEntitySystem.ControllerLogic.DestroyWithControlledEntity
   id: DestroyWithControlledEntity
@@ -196,6 +233,30 @@ items:
       description: ''
     content.vb: Public Sub StartControl(target As PawnLogic)
   overload: LiteEntitySystem.ControllerLogic.StartControl*
+- uid: LiteEntitySystem.ControllerLogic.OnControlledEntityChanged(LiteEntitySystem.PawnLogic)
+  commentId: M:LiteEntitySystem.ControllerLogic.OnControlledEntityChanged(LiteEntitySystem.PawnLogic)
+  id: OnControlledEntityChanged(LiteEntitySystem.PawnLogic)
+  parent: LiteEntitySystem.ControllerLogic
+  langs:
+  - csharp
+  - vb
+  name: OnControlledEntityChanged(PawnLogic)
+  nameWithType: ControllerLogic.OnControlledEntityChanged(PawnLogic)
+  fullName: LiteEntitySystem.ControllerLogic.OnControlledEntityChanged(LiteEntitySystem.PawnLogic)
+  type: Method
+  assemblies:
+  - LiteEntitySystem
+  namespace: LiteEntitySystem
+  summary: Called when ControlledEntity changed
+  example: []
+  syntax:
+    content: protected virtual void OnControlledEntityChanged(PawnLogic prevPawn)
+    parameters:
+    - id: prevPawn
+      type: LiteEntitySystem.PawnLogic
+      description: previous controlled entity
+    content.vb: Protected Overridable Sub OnControlledEntityChanged(prevPawn As PawnLogic)
+  overload: LiteEntitySystem.ControllerLogic.OnControlledEntityChanged*
 - uid: LiteEntitySystem.ControllerLogic.StopControl
   commentId: M:LiteEntitySystem.ControllerLogic.StopControl
   id: StopControl
@@ -339,6 +400,13 @@ references:
   name: IsClient
   nameWithType: InternalEntity.IsClient
   fullName: LiteEntitySystem.Internal.InternalEntity.IsClient
+- uid: LiteEntitySystem.Internal.InternalEntity.ClassIdName
+  commentId: P:LiteEntitySystem.Internal.InternalEntity.ClassIdName
+  parent: LiteEntitySystem.Internal.InternalEntity
+  href: LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_ClassIdName
+  name: ClassIdName
+  nameWithType: InternalEntity.ClassIdName
+  fullName: LiteEntitySystem.Internal.InternalEntity.ClassIdName
 - uid: LiteEntitySystem.Internal.InternalEntity.Version
   commentId: F:LiteEntitySystem.Internal.InternalEntity.Version
   parent: LiteEntitySystem.Internal.InternalEntity
@@ -423,13 +491,13 @@ references:
   name: IsRemoved
   nameWithType: InternalEntity.IsRemoved
   fullName: LiteEntitySystem.Internal.InternalEntity.IsRemoved
-- uid: LiteEntitySystem.Internal.InternalEntity.State
-  commentId: P:LiteEntitySystem.Internal.InternalEntity.State
+- uid: LiteEntitySystem.Internal.InternalEntity.CreationState
+  commentId: P:LiteEntitySystem.Internal.InternalEntity.CreationState
   parent: LiteEntitySystem.Internal.InternalEntity
-  href: LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_State
-  name: State
-  nameWithType: InternalEntity.State
-  fullName: LiteEntitySystem.Internal.InternalEntity.State
+  href: LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_CreationState
+  name: CreationState
+  nameWithType: InternalEntity.CreationState
+  fullName: LiteEntitySystem.Internal.InternalEntity.CreationState
 - uid: LiteEntitySystem.Internal.InternalEntity.Destroy
   commentId: M:LiteEntitySystem.Internal.InternalEntity.Destroy
   parent: LiteEntitySystem.Internal.InternalEntity
@@ -581,36 +649,6 @@ references:
     name: OnLateConstructed
     href: LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_OnLateConstructed
   - name: (
-  - name: )
-- uid: LiteEntitySystem.Internal.InternalEntity.RegisterRPC(LiteEntitySystem.RPCRegistrator@)
-  commentId: M:LiteEntitySystem.Internal.InternalEntity.RegisterRPC(LiteEntitySystem.RPCRegistrator@)
-  parent: LiteEntitySystem.Internal.InternalEntity
-  href: LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_RegisterRPC_LiteEntitySystem_RPCRegistrator__
-  name: RegisterRPC(ref RPCRegistrator)
-  nameWithType: InternalEntity.RegisterRPC(ref RPCRegistrator)
-  fullName: LiteEntitySystem.Internal.InternalEntity.RegisterRPC(ref LiteEntitySystem.RPCRegistrator)
-  nameWithType.vb: InternalEntity.RegisterRPC(RPCRegistrator)
-  fullName.vb: LiteEntitySystem.Internal.InternalEntity.RegisterRPC(LiteEntitySystem.RPCRegistrator)
-  name.vb: RegisterRPC(RPCRegistrator)
-  spec.csharp:
-  - uid: LiteEntitySystem.Internal.InternalEntity.RegisterRPC(LiteEntitySystem.RPCRegistrator@)
-    name: RegisterRPC
-    href: LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_RegisterRPC_LiteEntitySystem_RPCRegistrator__
-  - name: (
-  - name: ref
-  - name: " "
-  - uid: LiteEntitySystem.RPCRegistrator
-    name: RPCRegistrator
-    href: LiteEntitySystem.RPCRegistrator.html
-  - name: )
-  spec.vb:
-  - uid: LiteEntitySystem.Internal.InternalEntity.RegisterRPC(LiteEntitySystem.RPCRegistrator@)
-    name: RegisterRPC
-    href: LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_RegisterRPC_LiteEntitySystem_RPCRegistrator__
-  - name: (
-  - uid: LiteEntitySystem.RPCRegistrator
-    name: RPCRegistrator
-    href: LiteEntitySystem.RPCRegistrator.html
   - name: )
 - uid: LiteEntitySystem.Internal.InternalEntity.ExecuteRPC(LiteEntitySystem.RemoteCall@)
   commentId: M:LiteEntitySystem.Internal.InternalEntity.ExecuteRPC(LiteEntitySystem.RemoteCall@)
@@ -897,6 +935,58 @@ references:
     href: LiteEntitySystem.Internal.InternalBaseClass.html#LiteEntitySystem_Internal_InternalBaseClass_OnSyncRequested
   - name: (
   - name: )
+- uid: LiteEntitySystem.Internal.InternalEntity.LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus
+  commentId: M:LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  parent: LiteEntitySystem.Extensions.LocalMessageBusExtensions
+  definition: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  name: GetLocalMessageBus(InternalEntity)
+  nameWithType: LocalMessageBusExtensions.GetLocalMessageBus(InternalEntity)
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  spec.csharp:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+    name: GetLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  - name: (
+  - uid: LiteEntitySystem.Internal.InternalEntity
+    name: InternalEntity
+    href: LiteEntitySystem.Internal.InternalEntity.html
+  - name: )
+  spec.vb:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+    name: GetLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  - name: (
+  - uid: LiteEntitySystem.Internal.InternalEntity
+    name: InternalEntity
+    href: LiteEntitySystem.Internal.InternalEntity.html
+  - name: )
+- uid: LiteEntitySystem.Internal.InternalEntity.LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus
+  commentId: M:LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  parent: LiteEntitySystem.Extensions.LocalMessageBusExtensions
+  definition: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  name: GetOrCreateLocalMessageBus(InternalEntity)
+  nameWithType: LocalMessageBusExtensions.GetOrCreateLocalMessageBus(InternalEntity)
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  spec.csharp:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+    name: GetOrCreateLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  - name: (
+  - uid: LiteEntitySystem.Internal.InternalEntity
+    name: InternalEntity
+    href: LiteEntitySystem.Internal.InternalEntity.html
+  - name: )
+  spec.vb:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+    name: GetOrCreateLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  - name: (
+  - uid: LiteEntitySystem.Internal.InternalEntity
+    name: InternalEntity
+    href: LiteEntitySystem.Internal.InternalEntity.html
+  - name: )
 - uid: System
   commentId: N:System
   isExternal: true
@@ -1122,6 +1212,83 @@ references:
   - name: " "
   - name: T
   - name: )
+- uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  commentId: M:LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  name: GetLocalMessageBus(InternalEntity)
+  nameWithType: LocalMessageBusExtensions.GetLocalMessageBus(InternalEntity)
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  spec.csharp:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+    name: GetLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  - name: (
+  - uid: LiteEntitySystem.Internal.InternalEntity
+    name: InternalEntity
+    href: LiteEntitySystem.Internal.InternalEntity.html
+  - name: )
+  spec.vb:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+    name: GetLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  - name: (
+  - uid: LiteEntitySystem.Internal.InternalEntity
+    name: InternalEntity
+    href: LiteEntitySystem.Internal.InternalEntity.html
+  - name: )
+- uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions
+  commentId: T:LiteEntitySystem.Extensions.LocalMessageBusExtensions
+  parent: LiteEntitySystem.Extensions
+  href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html
+  name: LocalMessageBusExtensions
+  nameWithType: LocalMessageBusExtensions
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions
+- uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  commentId: M:LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  name: GetOrCreateLocalMessageBus(InternalEntity)
+  nameWithType: LocalMessageBusExtensions.GetOrCreateLocalMessageBus(InternalEntity)
+  fullName: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+  spec.csharp:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+    name: GetOrCreateLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  - name: (
+  - uid: LiteEntitySystem.Internal.InternalEntity
+    name: InternalEntity
+    href: LiteEntitySystem.Internal.InternalEntity.html
+  - name: )
+  spec.vb:
+  - uid: LiteEntitySystem.Extensions.LocalMessageBusExtensions.GetOrCreateLocalMessageBus(LiteEntitySystem.Internal.InternalEntity)
+    name: GetOrCreateLocalMessageBus
+    href: LiteEntitySystem.Extensions.LocalMessageBusExtensions.html#LiteEntitySystem_Extensions_LocalMessageBusExtensions_GetOrCreateLocalMessageBus_LiteEntitySystem_Internal_InternalEntity_
+  - name: (
+  - uid: LiteEntitySystem.Internal.InternalEntity
+    name: InternalEntity
+    href: LiteEntitySystem.Internal.InternalEntity.html
+  - name: )
+- uid: LiteEntitySystem.Extensions
+  commentId: N:LiteEntitySystem.Extensions
+  href: LiteEntitySystem.html
+  name: LiteEntitySystem.Extensions
+  nameWithType: LiteEntitySystem.Extensions
+  fullName: LiteEntitySystem.Extensions
+  spec.csharp:
+  - uid: LiteEntitySystem
+    name: LiteEntitySystem
+    href: LiteEntitySystem.html
+  - name: .
+  - uid: LiteEntitySystem.Extensions
+    name: Extensions
+    href: LiteEntitySystem.Extensions.html
+  spec.vb:
+  - uid: LiteEntitySystem
+    name: LiteEntitySystem
+    href: LiteEntitySystem.html
+  - name: .
+  - uid: LiteEntitySystem.Extensions
+    name: Extensions
+    href: LiteEntitySystem.Extensions.html
 - uid: LiteEntitySystem.ControllerLogic.IsBot*
   commentId: Overload:LiteEntitySystem.ControllerLogic.IsBot
   href: LiteEntitySystem.ControllerLogic.html#LiteEntitySystem_ControllerLogic_IsBot
@@ -1161,6 +1328,49 @@ references:
   name: BeforeControlledUpdate
   nameWithType: ControllerLogic.BeforeControlledUpdate
   fullName: LiteEntitySystem.ControllerLogic.BeforeControlledUpdate
+- uid: LiteEntitySystem.Internal.InternalEntity.RegisterRPC(LiteEntitySystem.RPCRegistrator@)
+  commentId: M:LiteEntitySystem.Internal.InternalEntity.RegisterRPC(LiteEntitySystem.RPCRegistrator@)
+  parent: LiteEntitySystem.Internal.InternalEntity
+  href: LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_RegisterRPC_LiteEntitySystem_RPCRegistrator__
+  name: RegisterRPC(ref RPCRegistrator)
+  nameWithType: InternalEntity.RegisterRPC(ref RPCRegistrator)
+  fullName: LiteEntitySystem.Internal.InternalEntity.RegisterRPC(ref LiteEntitySystem.RPCRegistrator)
+  nameWithType.vb: InternalEntity.RegisterRPC(RPCRegistrator)
+  fullName.vb: LiteEntitySystem.Internal.InternalEntity.RegisterRPC(LiteEntitySystem.RPCRegistrator)
+  name.vb: RegisterRPC(RPCRegistrator)
+  spec.csharp:
+  - uid: LiteEntitySystem.Internal.InternalEntity.RegisterRPC(LiteEntitySystem.RPCRegistrator@)
+    name: RegisterRPC
+    href: LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_RegisterRPC_LiteEntitySystem_RPCRegistrator__
+  - name: (
+  - name: ref
+  - name: " "
+  - uid: LiteEntitySystem.RPCRegistrator
+    name: RPCRegistrator
+    href: LiteEntitySystem.RPCRegistrator.html
+  - name: )
+  spec.vb:
+  - uid: LiteEntitySystem.Internal.InternalEntity.RegisterRPC(LiteEntitySystem.RPCRegistrator@)
+    name: RegisterRPC
+    href: LiteEntitySystem.Internal.InternalEntity.html#LiteEntitySystem_Internal_InternalEntity_RegisterRPC_LiteEntitySystem_RPCRegistrator__
+  - name: (
+  - uid: LiteEntitySystem.RPCRegistrator
+    name: RPCRegistrator
+    href: LiteEntitySystem.RPCRegistrator.html
+  - name: )
+- uid: LiteEntitySystem.ControllerLogic.RegisterRPC*
+  commentId: Overload:LiteEntitySystem.ControllerLogic.RegisterRPC
+  href: LiteEntitySystem.ControllerLogic.html#LiteEntitySystem_ControllerLogic_RegisterRPC_LiteEntitySystem_RPCRegistrator__
+  name: RegisterRPC
+  nameWithType: ControllerLogic.RegisterRPC
+  fullName: LiteEntitySystem.ControllerLogic.RegisterRPC
+- uid: LiteEntitySystem.RPCRegistrator
+  commentId: T:LiteEntitySystem.RPCRegistrator
+  parent: LiteEntitySystem
+  href: LiteEntitySystem.RPCRegistrator.html
+  name: RPCRegistrator
+  nameWithType: RPCRegistrator
+  fullName: LiteEntitySystem.RPCRegistrator
 - uid: LiteEntitySystem.ControllerLogic.DestroyWithControlledEntity*
   commentId: Overload:LiteEntitySystem.ControllerLogic.DestroyWithControlledEntity
   href: LiteEntitySystem.ControllerLogic.html#LiteEntitySystem_ControllerLogic_DestroyWithControlledEntity
@@ -1180,6 +1390,12 @@ references:
   name: PawnLogic
   nameWithType: PawnLogic
   fullName: LiteEntitySystem.PawnLogic
+- uid: LiteEntitySystem.ControllerLogic.OnControlledEntityChanged*
+  commentId: Overload:LiteEntitySystem.ControllerLogic.OnControlledEntityChanged
+  href: LiteEntitySystem.ControllerLogic.html#LiteEntitySystem_ControllerLogic_OnControlledEntityChanged_LiteEntitySystem_PawnLogic_
+  name: OnControlledEntityChanged
+  nameWithType: ControllerLogic.OnControlledEntityChanged
+  fullName: LiteEntitySystem.ControllerLogic.OnControlledEntityChanged
 - uid: LiteEntitySystem.ControllerLogic.StopControl*
   commentId: Overload:LiteEntitySystem.ControllerLogic.StopControl
   href: LiteEntitySystem.ControllerLogic.html#LiteEntitySystem_ControllerLogic_StopControl

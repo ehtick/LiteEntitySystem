@@ -146,6 +146,7 @@ namespace LiteEntitySystem
         /// </summary>
         /// <param name="syncVar">Variable to bind</param>
         /// <param name="onChangedAction">Action that will be called when variable changes by sync</param>
+        /// <param name="flags">different bind options</param>
         public void BindOnChange<TEntity, T>(ref SyncVar<T> syncVar, Action<TEntity, T> onChangedAction, BindOnChangeFlags flags = BindOnChangeFlags.ExecuteOnSync) where T : unmanaged where TEntity : InternalEntity
         {
             _fields[syncVar.FieldId].OnSync = RemoteCall<T>.CreateMCD(onChangedAction);
@@ -158,6 +159,7 @@ namespace LiteEntitySystem
         /// <param name="self">Target entity for binding</param>
         /// <param name="syncVar">Variable to bind</param>
         /// <param name="onChangedAction">Action that will be called when variable changes by sync</param>
+        /// <param name="flags">different bind options</param>
         public void BindOnChange<TEntity, T>(TEntity self, ref SyncVar<T> syncVar, Action<T> onChangedAction, BindOnChangeFlags flags = BindOnChangeFlags.ExecuteOnSync) where T : unmanaged where TEntity : InternalEntity
         {
             CheckTarget(self, onChangedAction.Target);
@@ -349,6 +351,7 @@ namespace LiteEntitySystem
         /// </summary>
         /// <param name="syncVar">Variable to bind</param>
         /// <param name="onChangedAction">Action that will be called when variable changes by sync</param>
+        /// <param name="flags">different bind options</param>
         public void BindOnChange<TSyncField, T>(ref SyncVar<T> syncVar, Action<TSyncField, T> onChangedAction, BindOnChangeFlags flags = BindOnChangeFlags.ExecuteOnSync) where T : unmanaged where TSyncField : SyncableField
         {
             _fields[syncVar.FieldId].OnSync = RemoteCall<T>.CreateMCD(onChangedAction);
@@ -361,6 +364,7 @@ namespace LiteEntitySystem
         /// <param name="self">Target entity for binding</param>
         /// <param name="syncVar">Variable to bind</param>
         /// <param name="onChangedAction">Action that will be called when variable changes by sync</param>
+        /// <param name="flags">different bind options</param>
         public void BindOnChange<TSyncField, T>(TSyncField self, ref SyncVar<T> syncVar, Action<T> onChangedAction, BindOnChangeFlags flags = BindOnChangeFlags.ExecuteOnSync) where T : unmanaged where TSyncField : SyncableField
         {
             RPCRegistrator.CheckTarget(self, onChangedAction.Target);

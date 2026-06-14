@@ -26,7 +26,7 @@ namespace LiteEntitySystem.Internal
         public int PredictedOffset;
         
         /// <summary>
-        /// Direct field offset which for Entities - is SyncVar<T>, and for SyncableField - SyncableField
+        /// Direct field offset which for Entities - is SyncVar&lt;T&gt;, and for SyncableField - SyncableField
         /// </summary>
         public readonly int Offset;
 
