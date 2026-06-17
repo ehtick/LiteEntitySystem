@@ -222,7 +222,14 @@ namespace LiteEntitySystem
                                    BindingFlags.NonPublic |
                                    BindingFlags.DeclaredOnly |
                                    BindingFlags.Static);
-            Array.Sort(fArr, (f1, f2) => string.Compare(f1.Name, f2.Name, StringComparison.InvariantCulture));
+            // Sort field names with Ordinal (byte-value) comparison, NOT culture-sensitive InvariantCulture.
+            // The serialized field layout (FixedOffset assignment) is derived from this order and must be identical
+            // on every peer. InvariantCulture is ICU-dependent: a full-ICU peer and an invariant-globalization peer
+            // (e.g. a server published with InvariantGlobalization=true, or any runtime where ICU is absent) can order
+            // underscore-prefixed identifiers (_controller, _controlledEntity, _parentId, ...) differently, producing
+            // mismatched FixedOffsets so a peer reads non-interpolated SyncVars from the wrong wire offset. Ordinal is
+            // environment-independent and is the correct collation for code identifiers.
+            Array.Sort(fArr, (f1, f2) => string.CompareOrdinal(f1.Name, f2.Name));
             return fArr;
         }
 

@@ -308,11 +308,16 @@ namespace LiteEntitySystem.Internal
             }
             
             //sort by placing interpolated first
+            // List.Sort is UNSTABLE, so a comparator that only ranks the interpolated flag leaves the order of
+            // equal-ranked fields implementation-defined — which can differ across .NET runtimes and break the
+            // cross-peer field layout. Tie-break by the (unique) field Name with Ordinal comparison to make the
+            // order a total, environment-independent ordering.
             fields.Sort((a, b) =>
             {
                 int wa = a.Flags.HasFlagFast(SyncFlags.Interpolated) ? 1 : 0;
                 int wb = b.Flags.HasFlagFast(SyncFlags.Interpolated) ? 1 : 0;
-                return wb - wa;
+                if (wa != wb) return wb - wa;
+                return string.CompareOrdinal(a.Name, b.Name);
             });
             Fields = fields.ToArray();
             SyncableFields = syncableFields.ToArray();
