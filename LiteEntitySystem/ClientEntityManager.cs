@@ -960,6 +960,7 @@ namespace LiteEntitySystem
             ref var classData = ref entity.ClassData;
 
             //set values to same as predicted entity for correct OnSync calls
+            PredictableEntityLogic localPredictedEntity = null;
             if (!entity.IsConstructed && entity is PredictableEntityLogic pel)
             {
                 foreach (var localEntity in _tempLocalEntities)
@@ -981,7 +982,8 @@ namespace LiteEntitySystem
                         var target = field.GetTargetObjectAndOffset(entity, out int offset);
                         field.TypeProcessor.CopyFrom(target, localEntity, offset);
                     }
-                    
+
+                    localPredictedEntity = localEntity;        
                     break;
                 }
             }
@@ -995,6 +997,8 @@ namespace LiteEntitySystem
             
             //Construct
             ConstructEntity(entity);
+            if(localPredictedEntity != null && entity is PredictableEntityLogic e)
+                e.OnEntityRecreated(localPredictedEntity);
 
             //Logger.Log($"ConstructedEntity: {entityId}, pid: {entityLogic.PredictedId}");
         }

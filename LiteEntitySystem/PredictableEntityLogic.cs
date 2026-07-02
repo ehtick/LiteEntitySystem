@@ -49,6 +49,15 @@ namespace LiteEntitySystem
             r.CreateRPCAction(this, OnSyncRPC, ref SyncRPC, ExecuteFlags.SendToOwner);
         }
 
+        /// <summary>
+        /// Called when client replaces predicted entity with matched server entity
+        /// </summary>
+        /// <param name="localPredictedEntity">previous local entity</param>
+        protected internal virtual void OnEntityRecreated(PredictableEntityLogic localPredictedEntity)
+        {
+            
+        }
+
         private void OnSyncRPC(InitialData initialData)
         {
             _predictedId = initialData.PredictedId;
