@@ -420,6 +420,7 @@ references:
   fullName: LiteEntitySystem.PawnLogic
 - uid: LiteEntitySystem.PredictableEntityLogic
   commentId: T:LiteEntitySystem.PredictableEntityLogic
+  parent: LiteEntitySystem
   href: LiteEntitySystem.PredictableEntityLogic.html
   name: PredictableEntityLogic
   nameWithType: PredictableEntityLogic

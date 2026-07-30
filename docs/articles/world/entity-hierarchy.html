@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Entity class hierarchy </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Entity class hierarchy ">
+      
+      <meta name="description" content="The entity base classes - what each level of the hierarchy adds, and a decision table for choosing what to subclass.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="entity-class-hierarchy">Entity class hierarchy</h1>
+
+<p>Every networked object descends from <code>InternalEntity</code>, but game code always subclasses one of five specialized bases — this page shows what each one adds and how to pick.</p>
+<pre><code>InternalEntity                     id, ownership, lifecycle, RPC
+├─ EntityLogic                     world objects: hierarchy, sync groups, predicted spawn
+│  ├─ PawnLogic                    possessable by a controller
+│  └─ PredictableEntityLogic       spawnable inside client prediction
+├─ ControllerLogic                 possesses pawns, synced only to its owner
+│  ├─ AiControllerLogic&lt;T&gt;         server-only bot brain
+│  └─ HumanControllerLogic&lt;TInput&gt; player input pipeline
+└─ SingletonEntityLogic            exactly one instance, server-owned
+</code></pre>
+<h2 id="choosing-a-base">Choosing a base</h2>
+<table>
+<thead>
+<tr>
+<th>You are building</th>
+<th>Subclass</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pickup, door, zone, item — a world object</td>
+<td><code>EntityLogic</code></td>
+<td>Full entity: SyncVars, hierarchy, RPCs.</td>
+</tr>
+<tr>
+<td>A player's body (character, vehicle)</td>
+<td><code>PawnLogic</code></td>
+<td>Adds possession; ownership follows the controller.</td>
+</tr>
+<tr>
+<td>A player's input handling</td>
+<td><code>HumanControllerLogic&lt;TInput, TPawn&gt;</code></td>
+<td>Input pipeline + prediction support; exists only on the owner's client and server.</td>
+</tr>
+<tr>
+<td>A bot's decision making</td>
+<td><code>AiControllerLogic&lt;TPawn&gt;</code></td>
+<td>Same possession model, server-only, never synced.</td>
+</tr>
+<tr>
+<td>A projectile the client spawns predictively</td>
+<td><code>PredictableEntityLogic</code></td>
+<td>Spawned via <code>AddPredictedEntity</code>, matched to the server copy later.</td>
+</tr>
+<tr>
+<td>Match state, physics service — one per world</td>
+<td><code>SingletonEntityLogic</code></td>
+<td>Single instance, <code>GetSingleton&lt;T&gt;()</code> lookup, always server-owned.</td>
+</tr>
+<tr>
+<td>A non-networked local service</td>
+<td>none — <code>ILocalSingleton</code></td>
+<td>Lives beside the world, not in it.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="what-each-level-adds">What each level adds</h2>
+<h3 id="internalentity--the-root">InternalEntity — the root</h3>
+<p>Identity (<code>Id</code>, <code>ClassId</code>, <code>Version</code>), ownership (<code>OwnerId</code>, <code>IsLocalControlled</code>, <code>IsRemoteControlled</code>, <code>IsServerControlled</code>), side checks (<code>IsServer</code>/<code>IsClient</code>, <code>ClientManager</code>/<code>ServerManager</code> accessors), the lifecycle overrides (<code>OnConstructed</code>, <code>OnLateConstructed</code>, <code>OnDestroy</code>, <code>Update</code>, <code>VisualUpdate</code>, rollback hooks) and the RPC machinery (<code>RegisterRPC</code>, <code>ExecuteRPC</code>). It lives in the <code>LiteEntitySystem.Internal</code> namespace but is fully public API — you never subclass it directly, because no spawn method accepts a direct descendant.</p>
+<h3 id="entitylogic--world-objects">EntityLogic — world objects</h3>
+<p>Everything meant to exist <em>in</em> the world: the parent/child tree (<code>SetParent</code>, <code>Childs</code>, destruction cascades), per-player sync groups (<code>IsSyncGroupEnabled</code>, <code>OnSyncGroupsChanged</code>), predicted spawning of child entities (<code>AddPredictedEntity</code>), scoped lag compensation (<code>EnableLagCompensationForOwner</code>) and <code>SharedReference</code> for storing references in SyncVars.</p>
+<h3 id="pawnlogic--possessable-bodies">PawnLogic — possessable bodies</h3>
+<p>A thin but important layer: the <code>Controller</code> property and the <code>Update()</code> that lets the possessing controller act first (<a href="../getting-started/adding-a-player.html">adding-a-player.md</a>). Possession rewires ownership — the pawn becomes owned by the controlling player, which switches on prediction for that client.</p>
+<h3 id="controllerlogic--the-brains">ControllerLogic — the brains</h3>
+<p>Controllers hold <code>StartControl</code>/<code>StopControl</code>/<code>GetControlledEntity</code> and are marked &quot;only for owner&quot;: other players never receive them, so whatever a controller stores stays between the server and the owning client. <code>HumanControllerLogic&lt;TInput&gt;</code> adds the input struct pipeline and the reliable request channel; <code>AiControllerLogic</code> is its server-only sibling for bots — same possession model, zero network cost. The <code>&lt;TInput, TPawn&gt;</code> / <code>&lt;TPawn&gt;</code> variants add a typed <code>ControlledEntity</code> shortcut.</p>
+<h3 id="predictableentitylogic--predicted-spawns">PredictableEntityLogic — predicted spawns</h3>
+<p>For entities that must appear on the owning client the instant they are created — projectiles above all. Created only through <code>AddPredictedEntity</code>, matched to the authoritative server copy when it arrives (<code>IsRecreated</code>, <code>OnEntityRecreated</code>). Covered in depth in the prediction section.</p>
+<h3 id="singletonentitylogic--one-per-world">SingletonEntityLogic — one per world</h3>
+<p>For synchronized services where a second instance is a bug: match rules, the physics manager. Always server-owned, found via <code>GetSingleton&lt;T&gt;()</code>/<code>TryGetSingleton</code>, spawned with <code>AddSingleton&lt;T&gt;()</code>. Not to be confused with <code>ILocalSingleton</code> — a plain interface for <em>non-networked</em> per-manager services.</p>
+<h2 id="server-and-client-variants">Server and client variants</h2>
+<p>Any of these bases can additionally be split into side variants: a shared class holding all synchronized members, with a server subclass and a client subclass registered under the same class id. The pattern and its rules live in <a href="../getting-started/registering-entity-types.html">registering-entity-types.md</a>; it applies to the whole hierarchy, controllers included.</p>
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Subclassing <code>InternalEntity</code> directly — it compiles, but no spawn method (<code>AddEntity</code>, <code>AddController</code>, <code>AddSingleton</code>, <code>AddPredictedEntity</code>) accepts it; use one of the five bases.</li>
+<li>Storing owner-private data (aim state, cooldown internals, loadout secrets) in pawn SyncVars — the pawn syncs to everyone; data that only the owner should see belongs in the controller.</li>
+<li>Modeling a world-wide service as a plain <code>EntityLogic</code> — nothing stops a second instance; <code>SingletonEntityLogic</code> encodes the invariant and gives <code>GetSingleton</code> lookup.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><p><a href="entity-lifecycle.html">entity-lifecycle.md</a></p>
+</li>
+<li><p><a href="../getting-started/registering-entity-types.html">registering-entity-types.md</a></p>
+</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

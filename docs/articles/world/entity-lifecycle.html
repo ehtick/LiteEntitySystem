@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Entity lifecycle </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Entity lifecycle ">
+      
+      <meta name="description" content="The entity lifecycle from constructor to removal - what each hook is for, destroy semantics per side, and how ids get reused safely.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="entity-lifecycle">Entity lifecycle</h1>
+
+<p>An entity passes through five states — New, Constructed, LateConstructed, Destroyed, Removed — and exposes a hook at each transition; putting code in the right hook is most of what &quot;lifecycle&quot; means in practice.</p>
+<pre><code>     constructor            OnConstructed           OnLateConstructed
+New ──────────────► Constructed ──────────► LateConstructed ──► (alive, Update runs)
+                                                       │  Destroy()
+                                                       ▼
+                                            Destroyed ──► Removed
+                                            OnDestroy      id freed, Version++
+</code></pre>
+<p>The current state is <code>CreationState</code>; <code>IsConstructed</code>, <code>IsDestroyed</code> and <code>IsRemoved</code> are shortcuts.</p>
+<h2 id="which-hook-for-what">Which hook for what</h2>
+<table>
+<thead>
+<tr>
+<th>Hook</th>
+<th>What is already valid</th>
+<th>Put here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>constructor</td>
+<td>Identity only: <code>Id</code>, <code>ClassId</code>, <code>Version</code>, <code>EntityManager</code>. Synced values are <strong>not</strong> applied yet</td>
+<td>Field defaults (<code>_speed.Value = 3f</code>), allocation of plain members</td>
+</tr>
+<tr>
+<td><code>OnConstructed</code></td>
+<td>All synced values applied; entities created <em>earlier</em> exist</td>
+<td>View creation on the client, singleton lookups, self-setup</td>
+</tr>
+<tr>
+<td><code>OnLateConstructed</code></td>
+<td>Every entity constructed in this batch exists</td>
+<td>Resolving references to entities spawned the same tick</td>
+</tr>
+<tr>
+<td><code>OnDestroy</code></td>
+<td>Entity still readable, world still consistent</td>
+<td>Releasing views, unsubscribing, dropping pooled resources</td>
+</tr>
+</tbody>
+</table>
+<h2 id="minimal-example">Minimal example</h2>
+<p><strong>Turret.cs</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+
+public class Turret : EntityLogic
+{
+    public SyncVar&lt;EntitySharedReference&gt; Target;
+
+    private EntityLogic _resolvedTarget;
+
+    public Turret(EntityParams entityParams) : base(entityParams)
+    {
+        // identity is set; Target is NOT applied yet — don't read it here
+    }
+
+    protected override void OnConstructed()
+    {
+        // synced values are applied; on the client, create the view here
+    }
+
+    protected override void OnLateConstructed()
+    {
+        // safe even if the target was spawned in the same tick as this turret
+        _resolvedTarget = EntityManager.GetEntityById&lt;EntityLogic&gt;(Target);
+    }
+
+    protected override void OnDestroy()
+    {
+        // destroy the view, drop references
+    }
+}
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="construction-order">Construction order</h3>
+<p>On the server, <code>AddEntity</code> runs the constructor, then your init method, then <code>OnConstructed</code> — which is why init-method values are visible there. On the client, the constructor runs when the entity first arrives, the synced data is applied, and only then <code>OnConstructed</code> fires. In both cases <code>OnLateConstructed</code> is deferred to the end of the current batch: when it runs, every entity constructed alongside yours already exists, which makes it the safe place for cross-entity wiring.</p>
+<p>Client-side construction order follows server-side creation order. A reference to an entity the server created <em>before</em> yours is therefore already resolvable in <code>OnConstructed</code>; <code>OnLateConstructed</code> removes even that ordering concern.</p>
+<h3 id="destroy-semantics">Destroy semantics</h3>
+<p><code>Destroy()</code> is a server-side decision. On the server it fires <code>OnDestroy</code> immediately, notifies clients as an ordered event, and — for an <code>EntityLogic</code> — cascades: children get <code>OnBeforeParentDestroy</code> first, then are destroyed too. On the client, <code>Destroy()</code> on a synced entity is a no-op; the entity dies when the server says so, and <code>OnDestroy</code> is where the client cleans up its view. The only entities a client may destroy itself are its local (predicted) ones.</p>
+<h3 id="id-reuse-and-version">Id reuse and Version</h3>
+<p>A destroyed entity's id is not freed immediately — the server waits until every client has confirmed a state past the destruction, then recycles the id. Each reuse increments the entity's <code>Version</code>, and <code>EntitySharedReference</code> stores id + version together: a stale reference to the dead entity resolves to <code>null</code> via <code>GetEntityById</code> instead of silently pointing at the newcomer. This is why entity references in game state should be <code>EntitySharedReference</code>, not direct object references.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p>Full sequence per spawn: constructor → init method → <code>OnConstructed</code> → (end of tick) <code>OnLateConstructed</code>. Destruction: <code>OnDestroy</code> at the <code>Destroy()</code> call, removal and id recycling deferred until all clients are past it. An entity destroyed before its <code>OnLateConstructed</code> still gets it, right before <code>OnDestroy</code>.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p>Same hook order, driven by the network: constructor and data on arrival, <code>OnConstructed</code> after values apply, <code>OnLateConstructed</code> at the end of processing the batch. Destruction arrives in order with state — by the time <code>OnDestroy</code> runs, the rest of that server state is already applied.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>Rollback re-runs <code>Update()</code> only — lifecycle hooks never re-fire during re-simulation. Predicted entities created via <code>AddPredictedEntity</code> do run their constructor and <code>OnConstructed</code> immediately on the client; what happens when the server's copy arrives is covered by the predicted-spawning page.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Reading SyncVars or looking up other entities in the constructor — synced values are not applied and the world may not contain them yet; that code belongs in <code>OnConstructed</code> or later.</li>
+<li>Creating the client view in the constructor — it spawns at default field values (position zero) and snaps when real data applies one moment later.</li>
+<li>Caching plain object references to other entities across ticks — after destruction and id reuse they point at the wrong entity; store <code>EntitySharedReference</code> and resolve via <code>GetEntityById</code>.</li>
+<li>Expecting <code>Destroy()</code> on the client to remove a synced entity — it is a no-op there by design; only the server (or a local predicted entity) can die.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="entity-hierarchy.html">entity-hierarchy.md</a></li>
+<li><a href="ownership-and-players.html">ownership-and-players.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

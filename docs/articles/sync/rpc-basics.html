@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>RPC basics </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="RPC basics ">
+      
+      <meta name="description" content="Declaring and executing RPCs - static handles, CreateRPCAction registration, ExecuteRPC, and every ExecuteFlags combination.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="rpc-basics">RPC basics</h1>
+
+<p>An RPC is a one-shot call the server sends to clients, ordered with the state stream: a static handle declares it, <code>RegisterRPC</code> binds it to a method, and <code>ExecuteRPC</code> fires it.</p>
+<h2 id="when-to-use-this">When to use this</h2>
+<ul>
+<li>Events that happen at a moment and carry no lasting state: a shot, a hit, a jump sound, a level-up flash.</li>
+<li>Anything a late joiner should <em>not</em> replay — state is for &quot;what is it now&quot;, RPCs for &quot;what just happened&quot;.</li>
+</ul>
+<h2 id="when-not-to">When not to</h2>
+<ul>
+<li>Continuous values — a <a href="syncvar.html"><code>SyncVar</code></a>; a late joiner needs the current value, not the history of changes.</li>
+<li>Client-to-server communication — RPCs only travel server-to-client; use the input struct or <a href="client-requests.html">requests</a>.</li>
+<li>Reacting to a value change — <a href="bind-on-change.html"><code>BindOnChange</code></a> already gives you that without a separate message.</li>
+</ul>
+<h2 id="minimal-example">Minimal example</h2>
+<p><strong>Grenade.cs</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+
+[EntityFlags(EntityFlags.Updateable)]
+public class Grenade : EntityLogic
+{
+    private static RemoteCall _fuseHissRpc;
+    private static RemoteCall&lt;byte&gt; _explodeRpc;
+
+    public Grenade(EntityParams entityParams) : base(entityParams) { }
+
+    protected override void RegisterRPC(ref RPCRegistrator r)
+    {
+        base.RegisterRPC(ref r);
+
+        // instance form: binds a method of this entity
+        r.CreateRPCAction(this, OnFuseHiss, ref _fuseHissRpc, ExecuteFlags.SendToAll);
+
+        // static form: dispatches through the type, so subclass overrides win
+        r.CreateRPCAction&lt;Grenade, byte&gt;(
+            static (grenade, power) =&gt; grenade.OnExplode(power),
+            ref _explodeRpc,
+            ExecuteFlags.SendToAll | ExecuteFlags.ExecuteOnServer);
+    }
+
+    // server-side triggers
+    public void StartFuse() =&gt; ExecuteRPC(_fuseHissRpc);
+    public void Explode(byte power) =&gt; ExecuteRPC(_explodeRpc, power);
+
+    private void OnFuseHiss() { /* clients: start the hiss loop */ }
+
+    protected virtual void OnExplode(byte power)
+    {
+        // runs on clients AND on the server (ExecuteOnServer):
+        // shared damage/effect code lives here
+    }
+}
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="static-handles">Static handles</h3>
+<p>An RPC handle is a <code>static</code> field because registration happens once per class, not per instance: the handle stores the method's slot in the class's RPC table and holds no reference to any entity. <code>ExecuteRPC</code> supplies the instance. Declaring the handle non-static wastes memory per entity and gains nothing.</p>
+<h3 id="registration-two-forms">Registration: two forms</h3>
+<p>Both live inside the <code>RegisterRPC</code> override, which must begin with <code>base.RegisterRPC(ref r)</code> — the library logs an error naming the class if that call is missing, and base-class RPCs stop working.</p>
+<p><strong>Instance form</strong> — <code>CreateRPCAction(this, Method, ref handle, flags)</code>. Shortest to write; binds the method of the class where you call it. Use it for non-virtual handlers.</p>
+<p><strong>Static form</strong> — <code>CreateRPCAction&lt;TEntity&gt;(static e =&gt; e.Method(), ref handle, flags)</code>, or <code>CreateRPCAction&lt;TEntity, T&gt;(static (e, value) =&gt; e.Method(value), ref handle, flags)</code> with a payload. Dispatches through the entity type, so a <code>virtual</code> handler overridden in a subclass runs the override. This is the same instance-vs-static split as in <a href="bind-on-change.html"><code>BindOnChange</code></a>, and for the same reason.</p>
+<p>Since the base class registers the RPC once for the whole hierarchy, a virtual handler must be registered in the static form — otherwise every subclass executes the base implementation.</p>
+<h3 id="firing">Firing</h3>
+<p><code>ExecuteRPC(handle)</code> — or <code>ExecuteRPC(handle, value)</code> for payload variants — sends the call to the players selected by the flags. Only the server sends; on a client the same call does nothing unless <code>ExecuteOnPrediction</code> applies (below). Payload forms are covered in <a href="rpc-payloads.html">RPC payloads</a>.</p>
+<h3 id="executeflags">ExecuteFlags</h3>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SendToOwner</code></td>
+<td>Deliver to the entity's owner</td>
+</tr>
+<tr>
+<td><code>SendToOther</code></td>
+<td>Deliver to everyone except the owner</td>
+</tr>
+<tr>
+<td><code>SendToAll</code></td>
+<td>Both of the above</td>
+</tr>
+<tr>
+<td><code>ExecuteOnServer</code></td>
+<td>Also run the method locally on the server when firing</td>
+</tr>
+<tr>
+<td><code>ExecuteOnPrediction</code></td>
+<td>Also run locally on the owning client during prediction</td>
+</tr>
+<tr>
+<td><code>All</code></td>
+<td>Everything above</td>
+</tr>
+<tr>
+<td><code>SyncGroup1</code>…<code>SyncGroup5</code></td>
+<td>Tag the RPC into a toggleable <a href="sync-groups.html">sync group</a></td>
+</tr>
+</tbody>
+</table>
+<p><code>ExecuteOnServer</code> is how one method serves as shared logic for both sides. <code>ExecuteOnPrediction</code> makes the owning client run the effect immediately at prediction time instead of waiting for the server's copy — pair it with <code>SendToOther</code> so the owner does not also receive the network version and fire twice (the example project's shooting RPCs use exactly <code>ExecuteOnPrediction | SendToOther</code>).</p>
+<h3 id="delivery-and-ordering">Delivery and ordering</h3>
+<p>RPCs behave as reliable ordered messages: every call reaches every selected player exactly once, in the order it was fired, and in order with state updates — a call fired on the tick a field changed arrives with that field's new value applied. A dropped packet delays the calls behind it but never loses them.</p>
+<p>The one exception is a session boundary. A client that reconnects starts from a fresh baseline and receives no calls fired before it: RPCs are events of a live connection, not history. Anything a returning player must know is state, not an RPC — the same rule as for late joiners.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p><code>ExecuteRPC</code> enqueues the call for each selected player and, with <code>ExecuteOnServer</code>, invokes the method locally right away. RPCs on AI controllers are dropped — nothing about them is networked. With no players connected, nothing is enqueued.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p>Handlers run as the containing state is processed, in the order the server fired them, with that state's field values already applied. A client cannot originate an RPC.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>With <code>ExecuteOnPrediction</code>, the owning client runs the handler at prediction time — and re-simulation does not repeat it, so a predicted effect is not duplicated by rollback. Inside handlers, avoid spawning predicted entities: <code>AddPredictedEntity</code> called from a server-to-client RPC is rejected and logged.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Forgetting <code>base.RegisterRPC(ref r)</code> — base-class RPCs and bindings are silently lost; the library logs an error with the class name.</li>
+<li><code>ExecuteOnPrediction</code> together with <code>SendToAll</code> — the owner runs the handler twice, once predicted and once from the network; use <code>SendToOther</code> for the network half.</li>
+<li>Registering a <code>virtual</code> handler in the instance form — registration happens once per hierarchy, so every subclass ends up running the base implementation; use the static form for virtual handlers.</li>
+<li>Using RPCs to carry state — neither a late joiner nor a reconnecting player receives past calls; anything they must know belongs in a <code>SyncVar</code>.</li>
+<li>Calling <code>ExecuteRPC</code> from client code and expecting it to reach the server — RPCs are one-directional; the client's channels are input and <a href="client-requests.html">requests</a>.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="rpc-payloads.html">rpc-payloads.md</a></li>
+<li><a href="client-requests.html">client-requests.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

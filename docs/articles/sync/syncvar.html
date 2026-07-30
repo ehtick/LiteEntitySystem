@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>SyncVar&lt;T&gt; </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="SyncVar&lt;T&gt; ">
+      
+      <meta name="description" content="Declaring and using SyncVar fields - the .Value contract, supported types, registering custom ones, and reading interpolated values.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="syncvart">SyncVar&lt;T&gt;</h1>
+
+<p><code>SyncVar&lt;T&gt;</code> is the basic unit of synchronized state: a struct wrapper around an unmanaged value that reports every change to the manager, so the server can ship exactly the fields that moved.</p>
+<h2 id="when-to-use-this">When to use this</h2>
+<ul>
+<li>Any entity state clients must agree on: position, health, ammo, a phase enum, a reference to another entity.</li>
+<li>Values read every frame by views — with <code>SyncFlags.Interpolated</code>, they gain a smoothed companion value.</li>
+</ul>
+<h2 id="when-not-to">When not to</h2>
+<ul>
+<li>Values only one side needs (bot timers, cached view objects, local accumulators) — plain C# fields; SyncVars cost bandwidth and are useless to a server-only or client-only concern.</li>
+<li>Strings, collections and other managed data — those are <a href="syncablefield-basics.html"><code>SyncableField</code></a> types like <code>SyncString</code> and <code>SyncList&lt;T&gt;</code>.</li>
+<li>One-shot events — an <a href="rpc-basics.html">RPC</a>; state answers &quot;what is it now&quot;, not &quot;what happened&quot;.</li>
+</ul>
+<h2 id="minimal-example">Minimal example</h2>
+<p><strong>Reactor.cs</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+
+public enum ReactorMode : byte { Idle, Charging, Venting }
+
+[EntityFlags(EntityFlags.Updateable)]
+public class Reactor : EntityLogic
+{
+    [SyncVarFlags(SyncFlags.Interpolated)]
+    public SyncVar&lt;float&gt; Heat;
+
+    public SyncVar&lt;ReactorMode&gt; Mode;
+    public SyncVar&lt;EntitySharedReference&gt; Operator;
+
+    public Reactor(EntityParams entityParams) : base(entityParams) { }
+
+    protected override void Update()
+    {
+        if (Mode == ReactorMode.Charging)       // implicit conversion, no .Value needed
+            Heat.Value += EntityManager.DeltaTimeF;
+
+        if (Heat &gt; 100f)
+            Mode.Value = ReactorMode.Venting;   // assignment always goes through .Value
+    }
+}
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="the-value-contract">The <code>.Value</code> contract</h3>
+<p>Reading works either way — <code>.Value</code> or the implicit conversion to <code>T</code> (<code>if (Heat &gt; 100f)</code>). Writing must always go through <code>.Value</code>. Assigning the field itself (<code>Heat = new SyncVar&lt;float&gt;()</code>) replaces the wrapper, losing its link to the entity, and synchronization for that field silently dies. The shipped Roslyn analyzer turns this into a compile error — see <a href="../getting-started/installation.html">installation</a>.</p>
+<p>Each write compares the bytes and only marks the field dirty when the value actually differs, so assigning the same value every tick costs nothing on the wire.</p>
+<h3 id="which-types-are-allowed">Which types are allowed</h3>
+<p>Any <code>unmanaged</code> type: primitives, enums, and structs of those. <code>EntitySharedReference</code> is supported out of the box — that is how entity references are stored — as is <code>FloatAngle</code> for values that wrap at 360°.</p>
+<p>Engine types like <code>Vector2</code> are unmanaged but unknown to the library until registered, once per process on both sides, before creating managers:</p>
+<pre><code class="lang-csharp">EntityManager.RegisterFieldType&lt;Vector2&gt;(Vector2.Lerp);   // with interpolation
+EntityManager.RegisterFieldType&lt;MyPackedStruct&gt;();        // without
+</code></pre>
+<p>Pass a lerp function for anything you intend to mark <code>Interpolated</code>; omit it for types that only ever snap.</p>
+<h3 id="reading-interpolated-values">Reading interpolated values</h3>
+<p>A field marked <code>SyncFlags.Interpolated</code> keeps a second, smoothed value in <code>InterpolatedValue</code>. The rule of thumb: logic reads <code>.Value</code>, views read <code>.InterpolatedValue</code>. Details of what it interpolates between — and why the answer differs for owned and remote entities — are in the <a href="../netcode/interpolation.html">interpolation page</a>.</p>
+<h3 id="behavior-flags-and-change-callbacks">Behavior flags and change callbacks</h3>
+<p><code>[SyncVarFlags(...)]</code> on the field (or on the whole class as a default) controls interpolation, lag compensation, per-owner visibility, rollback participation and sync groups; each flag has its own row in the <a href="sync-flags.html">SyncFlags reference</a>. To react to a value arriving from the server, bind a callback in <code>RegisterRPC</code> — see <a href="bind-on-change.html">change notifications</a>. When you need to change a value without triggering those callbacks locally, <code>SetValueWithoutOnSyncNotification</code> does exactly that.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p>A write marks the field dirty for the tick; the next <a href="how-state-syncs.html">state update</a> carries it to the clients that are allowed to see it. Values written before the entity is constructed (in an init method) are part of its very first packet.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p>Incoming states overwrite <code>.Value</code> directly — no callbacks unless bound. A write made by client code is a local prediction: it holds until the next server state for that field replaces it.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>On locally controlled entities, predicted fields are reset to the last server value at every rollback and re-derived by re-simulation. On entities the client does not own, a field only participates if marked <code>SyncFlags.AlwaysRollback</code>; <code>NeverRollBack</code> opts a field out entirely. See <a href="../netcode/rollback-per-field.html">controlling rollback</a>.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Assigning the wrapper instead of <code>.Value</code> — sync for that field dies silently; install the analyzer so it cannot compile.</li>
+<li><code>SyncVar&lt;Vector2&gt;</code> (or any engine type) without <code>RegisterFieldType</code> — fails at startup; register on both sides before creating managers.</li>
+<li>Reading <code>.Value</code> in view code — visuals step at the send rate; views read <code>.InterpolatedValue</code>.</li>
+<li>Storing a direct entity reference in a SyncVar-like field — only <code>EntitySharedReference</code> survives serialization and id reuse.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="sync-flags.html">sync-flags.md</a></li>
+<li><a href="bind-on-change.html">bind-on-change.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Adding a player: controller and pawn </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Adding a player: controller and pawn ">
+      
+      <meta name="description" content="Player movement end-to-end - the input struct, a PawnLogic body, a HumanControllerLogic that polls and applies input, and possession on join.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="adding-a-player-controller-and-pawn">Adding a player: controller and pawn</h1>
+
+<p>Player control is split across two entities: the <em>pawn</em> (<code>PawnLogic</code>) is the body that moves in the world, the <em>controller</em> (<code>HumanControllerLogic</code>) reads the player's input and drives the pawn — the same split as in classic shooter engines, and the part of the library that makes prediction work automatically.</p>
+<h2 id="when-to-use-this">When to use this</h2>
+<ul>
+<li>Any player-driven thing: a character, a vehicle, a spectator camera — as a pawn possessed by that player's controller.</li>
+<li>One <code>HumanControllerLogic</code> per connected player; it survives pawn deaths and can possess a new pawn.</li>
+</ul>
+<h2 id="when-not-to">When not to</h2>
+<ul>
+<li>Server-driven AI — that is <code>AiControllerLogic</code>, registered on the server only.</li>
+<li>World objects nobody steers directly (the crystal from <a href="first-synced-entity.html">first-synced-entity.md</a>) — plain <code>EntityLogic</code>, no controller involved.</li>
+</ul>
+<h2 id="minimal-example">Minimal example</h2>
+<p>Three pieces: an input struct, a pawn, a controller.</p>
+<p><strong>PlayerControl.cs</strong></p>
+<pre><code class="lang-csharp">using System;
+using LiteEntitySystem;
+
+[Flags]
+public enum MoveKeys : byte
+{
+    Up = 1, Down = 1 &lt;&lt; 1, Left = 1 &lt;&lt; 2, Right = 1 &lt;&lt; 3
+}
+
+public struct PlayerInput
+{
+    public MoveKeys Keys;
+}
+
+[EntityFlags(EntityFlags.Updateable)]
+public class MyPlayer : PawnLogic
+{
+    [SyncVarFlags(SyncFlags.Interpolated)]
+    public SyncVar&lt;float&gt; X;
+
+    [SyncVarFlags(SyncFlags.Interpolated)]
+    public SyncVar&lt;float&gt; Y;
+
+    private float _moveX, _moveY;
+    private const float Speed = 3f;
+
+    public MyPlayer(EntityParams entityParams) : base(entityParams) { }
+
+    public void SetMove(float x, float y)
+    {
+        _moveX = x;
+        _moveY = y;
+    }
+
+    protected override void Update()
+    {
+        base.Update(); // lets the controller apply input first — do not remove
+        X.Value += _moveX * Speed * EntityManager.DeltaTimeF;
+        Y.Value += _moveY * Speed * EntityManager.DeltaTimeF;
+    }
+}
+
+public class MyPlayerController : HumanControllerLogic&lt;PlayerInput, MyPlayer&gt;
+{
+    public MyPlayerController(EntityParams entityParams) : base(entityParams) { }
+
+    protected override void VisualUpdate()
+    {
+        ref PlayerInput input = ref ModifyPendingInput();
+        // poll your engine here, e.g.:
+        // if (Input.GetKey(KeyCode.W)) input.Keys |= MoveKeys.Up;
+    }
+
+    protected override void BeforeControlledUpdate()
+    {
+        MoveKeys keys = CurrentInput.Keys;
+        ControlledEntity?.SetMove(
+            ((keys &amp; MoveKeys.Right) != 0 ? 1f : 0f) - ((keys &amp; MoveKeys.Left) != 0 ? 1f : 0f),
+            ((keys &amp; MoveKeys.Up) != 0 ? 1f : 0f) - ((keys &amp; MoveKeys.Down) != 0 ? 1f : 0f));
+    }
+}
+</code></pre>
+<p>On the server, possession happens at join — the same two lines as in <a href="starting-a-server.html">starting-a-server.md</a>:</p>
+<p><strong>On the server</strong></p>
+<pre><code class="lang-csharp">var pawn = _entityManager.AddEntity&lt;MyPlayer&gt;();
+_entityManager.AddController&lt;MyPlayerController&gt;(player, pawn);
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="the-input-struct">The input struct</h3>
+<p>Input is one unmanaged struct per tick. It is sent unreliably and redundantly (resent until the server confirms it) and delta-compressed against the previous tick, so keep it small and flat — flags in one enum, floats for analog axes. If a clean input isn't all zeroes for your game, override <code>GetDefaultInput()</code>.</p>
+<h3 id="the-pawn">The pawn</h3>
+<p>The pawn is a normal entity plus possession. Calling <code>base.Update()</code> first is what invokes the controller's <code>BeforeControlledUpdate()</code> on this tick, so input is applied before movement code runs. Everything else — SyncVars, interpolation, views — works exactly as on the <a href="first-synced-entity.html">first entity page</a>.</p>
+<p><code>BeforeControlledUpdate</code> is a convenience, not the only way in. The pawn can equally pull input itself, at the cost of a cast to the concrete controller:</p>
+<p><strong>Alternative: pull instead of push</strong></p>
+<pre><code class="lang-csharp">protected override void Update()
+{
+    if (Controller is MyPlayerController pc)
+    {
+        MoveKeys keys = pc.CurrentInput.Keys;
+        // apply movement directly from keys
+    }
+}
+</code></pre>
+<h3 id="the-controller">The controller</h3>
+<p><code>VisualUpdate()</code> runs every render frame on the owning client and is the only right place to poll engine input: fill the struct returned by <code>ModifyPendingInput()</code>. At the next logic tick the library turns the pending input into <code>CurrentInput</code>, stores it in history and sends it. <code>BeforeControlledUpdate()</code> then translates <code>CurrentInput</code> into pawn commands — it runs on both the owning client (prediction) and the server (authority), with the input for the tick being simulated. The <code>HumanControllerLogic&lt;TInput, T&gt;</code> variant adds the typed <code>ControlledEntity</code> shortcut.</p>
+<h3 id="possession-and-ownership">Possession and ownership</h3>
+<p><code>AddController&lt;T&gt;(player, pawn)</code> creates the controller owned by that player and starts control. Possession propagates ownership: the pawn becomes locally controlled on that player's client, which automatically makes it predicted there. The controller itself is marked &quot;only for owner&quot; — other clients never receive it, so all code that reads input lives outside the world other players see.</p>
+<h3 id="the-round-trip-of-one-keypress">The round trip of one keypress</h3>
+<ol>
+<li>Owning client, render frame: <code>VisualUpdate</code> writes the key into the pending input.</li>
+<li>Owning client, next logic tick: pending becomes <code>CurrentInput</code>; the tick's input is stored and sent; <code>BeforeControlledUpdate</code> + pawn <code>Update</code> move the pawn immediately — that is the prediction.</li>
+<li>Server, the tick with the same number: the received input is applied, the identical <code>BeforeControlledUpdate</code> + <code>Update</code> path runs — that is the authority.</li>
+<li>Owning client, on the next server state: predicted fields reset, stored inputs re-simulate the pawn; if server and prediction agreed, nothing visibly changes.</li>
+<li>Everyone else sees the pawn's SyncVars interpolated, like any other entity.</li>
+</ol>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p>Incoming inputs are buffered per player and applied on the matching tick. If a tick's input hasn't arrived (loss, jitter), the previously applied input remains in effect — a briefly held key is a smoother guess than a zeroed one. The elastic client clock keeps a small reserve of inputs buffered server-side.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p>Only the owning client has the controller. Its pawn is simulated locally every tick without waiting for the server; <code>X</code>/<code>Y</code> here are predictions. Remote players' pawns arrive as ordinary synced entities and are interpolated — their controllers don't exist on this client.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>During rollback the library replays stored inputs: for each re-simulated tick the controller's <code>CurrentInput</code> is loaded from history and <code>BeforeControlledUpdate</code> runs again, so the pawn's <code>Update</code> sees exactly what it saw the first time. This is automatic — but it is why input polling must never happen in <code>Update</code> or <code>BeforeControlledUpdate</code>.</p>
+<p>Re-simulation also means movement code runs multiple times for the same tick. Pure state math is safe to repeat; one-shot side effects (footstep sounds, dust particles) are not — gate them with <code>EntityManager.InNormalState</code> so they fire only during the original simulation, not on every correction.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Relying on <code>BeforeControlledUpdate</code> but overriding the pawn's <code>Update()</code> without <code>base.Update()</code> — the callback never runs, <code>CurrentInput</code> never reaches the pawn, and movement silently dies on server and client alike. (Not an issue if the pawn pulls input from <code>Controller</code> itself.)</li>
+<li>Polling engine input anywhere except <code>VisualUpdate</code> — ticks and render frames are not 1:1 (keypresses between ticks get lost), and during rollback <code>BeforeControlledUpdate</code> re-runs with historical input, where a live poll corrupts the re-simulation.</li>
+<li>A fat input struct (reference types won't compile; big structs hurt) — it travels every tick, redundantly; keep it to key flags and a few floats.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><p><a href="lag-compensation.html">lag-compensation.md</a></p>
+</li>
+<li><p><a href="starting-a-server.html">starting-a-server.md</a></p>
+</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

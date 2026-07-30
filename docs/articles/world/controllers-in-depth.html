@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Controllers in depth </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Controllers in depth ">
+      
+      <meta name="description" content="Possession API, the BeforeControlledUpdate ordering guarantee, controller lookups, and the disconnect/reconnect pattern that keeps the pawn alive.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="controllers-in-depth">Controllers in depth</h1>
+
+<p>A controller is the possession point between a player and the world: it can grab and release pawns at runtime, it is private to its owner, and — done right — it is disposable, which is exactly what a clean reconnect flow relies on.</p>
+<h2 id="when-to-use-this">When to use this</h2>
+<ul>
+<li>Runtime possession changes: respawning into a new pawn, entering a vehicle, switching to spectator.</li>
+<li>Disconnect/reconnect handling where the player's body must survive the connection.</li>
+</ul>
+<h2 id="when-not-to">When not to</h2>
+<ul>
+<li>Bot logic — that is <a href="ai-controllers.html">ai-controllers.md</a>, same possession model without the network.</li>
+<li>Anything that must outlive the connection (score, inventory, match stats) — that state belongs on the pawn or a game entity, not on the controller (see the reconnect pattern below).</li>
+</ul>
+<h2 id="minimal-example">Minimal example</h2>
+<p>Server-side session handling that survives a dropped connection:</p>
+<p><strong>PlayerSessions.cs (server)</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+using LiteEntitySystem.Transport;
+
+public class PlayerSessions
+{
+    private readonly ServerEntityManager _manager;
+
+    public PlayerSessions(ServerEntityManager manager) =&gt; _manager = manager;
+
+    public void OnDisconnected(NetPlayer player)
+    {
+        // detach first — otherwise RemovePlayer destroys the pawn together
+        // with the controller via DestroyWithControlledEntity
+        _manager.GetPlayerController(player)?.StopControl();
+        _manager.RemovePlayer(player);
+        // the pawn stays in the world, reverted to server ownership
+    }
+
+    public NetPlayer OnReconnected(AbstractNetPeer peer, BasePlayer existingPawn)
+    {
+        var player = _manager.AddPlayer(peer);
+        _manager.AddController&lt;BasePlayerController&gt;(player, existingPawn);
+        return player;
+    }
+}
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="the-possession-api">The possession API</h3>
+<p><code>StartControl(pawn)</code> binds a pawn to this controller and rewires the pawn's ownership to the controller's owner; it implicitly releases any previously controlled pawn. <code>StopControl()</code> detaches the pawn, which reverts to server ownership (or its parent's). <code>DestroyWithControlledEntity()</code> kills both at once — it is what <code>RemovePlayer</code> calls for the player's controller by default. All three are server-only and silently do nothing on the client.</p>
+<h3 id="the-ordering-guarantee">The ordering guarantee</h3>
+<p><code>BeforeControlledUpdate()</code> runs from the pawn's <code>base.Update()</code>, immediately before the pawn's own logic — a per-tick guarantee that input handling precedes movement. Do not rely on the relative <code>Update()</code> order of the controller and pawn <em>entities</em> instead: entity update order follows creation order, which is not a contract. Anything that must happen &quot;just before my pawn moves&quot; belongs in <code>BeforeControlledUpdate</code>.</p>
+<h3 id="finding-controllers-and-players">Finding controllers and players</h3>
+<p>On the server: <code>GetPlayerController(NetPlayer | byte | AbstractNetPeer)</code> returns the player's <code>HumanControllerLogic</code>. On the client: <code>GetPlayerController&lt;T&gt;()</code> returns the local player's controller or null. In the other direction, a controller resolves its player with <code>GetAssignedPlayer()</code>, and <code>GetControlledEntity&lt;T&gt;()</code> / the typed <code>ControlledEntity</code> property resolve the pawn.</p>
+<h3 id="reacting-to-possession-changes">Reacting to possession changes</h3>
+<p>Override <code>OnControlledEntityChanged(prevPawn)</code> on the controller — it fires on the server at the change and on the owning client when the change syncs in. The argument is the <em>previous</em> pawn; the current one is already readable through <code>ControlledEntity</code>.</p>
+<h3 id="the-reconnect-pattern">The reconnect pattern</h3>
+<p>A controller should be treated as connection-scoped: when a player drops, detach the pawn with <code>StopControl</code>, let <code>RemovePlayer</code> destroy the controller, and keep the pawn alive in the world. On reconnect, <code>AddPlayer</code> produces a fresh <code>NetPlayer</code> (with a <em>new</em> player id), a fresh controller is created, and <code>AddController(player, existingPawn)</code> re-possesses the old body — ownership rewires to the new id automatically.</p>
+<p>The corollary is the design rule from the top of this page: nothing that must survive a reconnect may live in the controller. Its SyncVars start clean with every new controller instance; the pawn's state is what persists.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p>Possession is entirely server-driven. <code>RemovePlayer</code> without a prior <code>StopControl</code> destroys the controller <em>and</em> its pawn — the right default for permanent leavers, the wrong one for reconnectable games. A pawn without a controller keeps updating as a server-owned entity.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p>Only the owning client has the controller entity at all (<code>EntityFlags.OnlyForOwner</code>). Other clients observe possession indirectly — the pawn's behavior and owner-dependent field visibility change. On the owner, <code>OnControlledEntityChanged</code> fires when the possession change arrives with state.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>The controlled-pawn reference is marked never-rollback: rollback re-simulation does not rewind who controls what. Input replay during rollback goes through the same <code>BeforeControlledUpdate</code> path with historical inputs, as described in <a href="../getting-started/adding-a-player.html">adding-a-player.md</a>.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Calling <code>RemovePlayer</code> without <code>StopControl</code> when the pawn should survive — the default path destroys pawn and controller together.</li>
+<li>Storing score, inventory or per-match stats in the controller — a reconnect creates a fresh controller and that state is gone; persistent state lives on the pawn or a game entity.</li>
+<li>Ordering logic by the controller entity's <code>Update()</code> relative to the pawn's — creation-order scheduling is not a contract; use <code>BeforeControlledUpdate</code>.</li>
+<li>Calling <code>StartControl</code>/<code>StopControl</code> on the client and wondering why nothing happens — possession is server-only and the calls are silent no-ops.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="ai-controllers.html">ai-controllers.md</a></li>
+<li><a href="ownership-and-players.html">ownership-and-players.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

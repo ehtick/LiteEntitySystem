@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Writing a custom SyncableField </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Writing a custom SyncableField ">
+      
+      <meta name="description" content="Building your own SyncableField - registering client actions, sending changes, restoring full state, and adding rollback support.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="writing-a-custom-syncablefield">Writing a custom SyncableField</h1>
+
+<p>When no built-in type fits, a custom <code>SyncableField</code> gives you a synchronized object of your own: you decide what a change is, send it as an internal RPC, and re-send the whole contents when a new client needs it.</p>
+<h2 id="when-to-use-this">When to use this</h2>
+<ul>
+<li>A data structure the <a href="built-in-syncable-fields.html">built-ins</a> don't cover, where sending only the edits matters.</li>
+<li>Domain objects with their own invariants — a deck of cards, a build grid, a cooldown table.</li>
+</ul>
+<h2 id="when-not-to">When not to</h2>
+<ul>
+<li>A fixed-size unmanaged value — <a href="syncvar.html"><code>SyncVar&lt;T&gt;</code></a>.</li>
+<li>Something a built-in already does; wrapping a <code>SyncList&lt;T&gt;</code> in your own entity API is simpler and already rollback-aware.</li>
+</ul>
+<h2 id="minimal-example">Minimal example</h2>
+<p>A flag grid where any cell can be flipped:</p>
+<p><strong>SyncFlagGrid.cs</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+
+public class SyncFlagGrid : SyncableField
+{
+    private struct CellChange
+    {
+        public ushort Index;
+        public bool Value;
+    }
+
+    private readonly bool[] _cells;
+
+    private static RemoteCall&lt;CellChange&gt; _setCellAction;
+    private static RemoteCallSpan&lt;bool&gt; _initAction;
+
+    public SyncFlagGrid(int size) =&gt; _cells = new bool[size];
+
+    public bool this[int index]
+    {
+        get =&gt; _cells[index];
+        set
+        {
+            if (_cells[index] == value)
+                return;
+            _cells[index] = value;
+            ExecuteRPC(_setCellAction, new CellChange { Index = (ushort)index, Value = value });
+        }
+    }
+
+    protected internal override void RegisterRPC(ref SyncableRPCRegistrator r)
+    {
+        r.CreateClientAction(this, OnSetCell, ref _setCellAction);
+        r.CreateClientAction(this, OnInit, ref _initAction);
+    }
+
+    protected internal override void OnSyncRequested() =&gt; ExecuteRPC(_initAction, _cells);
+
+    private void OnSetCell(CellChange change) =&gt; _cells[change.Index] = change.Value;
+
+    private void OnInit(ReadOnlySpan&lt;bool&gt; data) =&gt; data.CopyTo(_cells);
+}
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="client-actions-instead-of-rpcs">Client actions instead of RPCs</h3>
+<p>Inside a syncable field the registrator is <code>SyncableRPCRegistrator</code> and the method is <code>CreateClientAction</code> — the same static-handle pattern as <a href="rpc-basics.html">entity RPCs</a>, minus the flags. You never pass <code>ExecuteFlags</code> here: the field's own <code>[SyncVarFlags]</code> visibility is translated into the delivery rule for every call it sends — no flag means all players, <code>OnlyForOwner</code> means the owner alone, <code>OnlyForOtherPlayers</code> means everyone else, and sync-group tags route the calls like any other RPC. One rule for the whole field, fixed when it is bound to the entity.</p>
+<p>A client action always executes on the receiving client. <code>RegisterRPC</code> here does not need a <code>base</code> call unless your own base class registers something.</p>
+<h3 id="sending-changes">Sending changes</h3>
+<p><code>ExecuteRPC</code> from inside the field sends to the players the field's visibility allows. It only does anything on the server, so mutating methods can be written without side checks — on a client they change local memory and nothing else. Compare before sending, as the setter above does: an unchanged value should not produce traffic.</p>
+<h3 id="restoring-full-state">Restoring full state</h3>
+<p><code>OnSyncRequested</code> is called when a client needs the entity's complete state — on join, and whenever the server must resend it. Send everything in one call, typically with a span action. Without this override, a client that connects after the edits sees an empty field: the incremental calls it missed are never replayed.</p>
+<h3 id="choosing-the-payload-shape">Choosing the payload shape</h3>
+<p>Design one small struct per kind of change (<code>CellChange</code> above), and one bulk action for <code>OnSyncRequested</code>. Payload rules are the <a href="rpc-payloads.html">RPC payload rules</a>: unmanaged values, spans valid only inside the handler, <code>ISpanSerializable</code> when the shape is variable.</p>
+<h2 id="adding-rollback-support">Adding rollback support</h2>
+<p>Derive from <code>SyncableFieldCustomRollback</code> when clients may modify the field predictively. Four members carry the contract:</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BeforeReadRPC()</code></td>
+<td>Incoming server data is about to be applied — redirect writes to your server-side copy</td>
+</tr>
+<tr>
+<td><code>AfterReadRPC()</code></td>
+<td>Server data applied — restore the working copy from it</td>
+</tr>
+<tr>
+<td><code>OnRollback()</code></td>
+<td>Reset the working copy to the server-confirmed contents</td>
+</tr>
+<tr>
+<td><code>MarkAsChanged()</code></td>
+<td>Call from mutators so the entity joins the client's rollback set</td>
+</tr>
+</tbody>
+</table>
+<p>The pattern is to keep two copies: the confirmed server state and the working state predicted code sees. The library's own <code>Childs</code> field is the reference implementation.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p>Mutations produce client actions immediately, ordered with state. <code>OnSyncRequested</code> runs per client that needs a full copy — keep it allocation-free if entities are numerous.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p>Incoming actions are applied in order. Local mutations of a plain syncable field affect only local memory; nothing is sent upward, and nothing reconciles them with the server.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>A plain <code>SyncableField</code> is invisible to rollback — predicted edits are never reverted. Only <code>SyncableFieldCustomRollback</code> types take part, through the four members above.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>No <code>OnSyncRequested</code> — the field looks empty to every client that joins after its contents were set.</li>
+<li>Non-static action handles — registration is per class; instance handles waste memory and break the registration model.</li>
+<li>Sending on every write without comparing — a value reassigned each tick becomes traffic each tick.</li>
+<li>Predictive edits on a plain <code>SyncableField</code> — without <code>SyncableFieldCustomRollback</code> they are never reset, and the client drifts away from the server.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="sync-groups.html">sync-groups.md</a></li>
+<li><a href="built-in-syncable-fields.html">built-in-syncable-fields.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

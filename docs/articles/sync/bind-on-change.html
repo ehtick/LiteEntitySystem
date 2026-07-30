@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Change notifications: BindOnChange </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Change notifications: BindOnChange ">
+      
+      <meta name="description" content="Binding callbacks to SyncVar changes - the two binding forms, the previous-value argument, and choosing timings with BindOnChangeFlags.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="change-notifications-bindonchange">Change notifications: BindOnChange</h1>
+
+<p><code>BindOnChange</code> attaches a callback to a <code>SyncVar</code>, so code runs exactly when the value changes instead of comparing it every frame — with flags deciding which of the several moments a value can change actually fire it.</p>
+<h2 id="when-to-use-this">When to use this</h2>
+<ul>
+<li>Reacting to state arriving from the server: update a label, play a reaction, swap a material.</li>
+<li>Reacting to changes on the entity itself regardless of side — with <code>ExecuteOnServer</code> added.</li>
+</ul>
+<h2 id="when-not-to">When not to</h2>
+<ul>
+<li>One-shot events that carry their own data (a hit, a shout) — an <a href="rpc-basics.html">RPC</a>; a callback only tells you a value changed.</li>
+<li>Per-frame view updates — read <code>InterpolatedValue</code> in the view; callbacks fire at the send rate, not per frame.</li>
+</ul>
+<h2 id="minimal-example">Minimal example</h2>
+<p><strong>Lamp.cs</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+
+public class Lamp : EntityLogic
+{
+    public SyncVar&lt;bool&gt; IsOn;
+    public SyncVar&lt;byte&gt; Brightness;
+
+    public Lamp(EntityParams entityParams) : base(entityParams) { }
+
+    protected override void RegisterRPC(ref RPCRegistrator r)
+    {
+        base.RegisterRPC(ref r);
+
+        // instance form: callback is a method of this entity
+        r.BindOnChange(this, ref IsOn, OnIsOnChanged);
+
+        // static form: no closure over the instance, works for virtual methods
+        r.BindOnChange&lt;Lamp, byte&gt;(ref Brightness,
+            static (lamp, prevBrightness) =&gt; lamp.ApplyBrightness());
+    }
+
+    private void OnIsOnChanged(bool wasOn)
+    {
+        // IsOn already holds the NEW value; wasOn is the previous one
+        ApplyBrightness();
+    }
+
+    private void ApplyBrightness() { /* update the view */ }
+}
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="where-bindings-are-declared">Where bindings are declared</h3>
+<p>Bindings live in the <code>RegisterRPC</code> override, next to RPC registration, and are set up once per class — like RPCs, they belong to the class, not to an instance. The override must start with <code>base.RegisterRPC(ref r)</code>, or base-class bindings are lost.</p>
+<h3 id="the-previous-value-argument">The previous-value argument</h3>
+<p>The callback receives the value the field held <em>before</em> the change; the field itself already holds the new one. That asymmetry is deliberate — it lets a callback diff old against new (<code>if (wasOn != IsOn)</code>) without keeping a shadow copy.</p>
+<h3 id="choosing-timings">Choosing timings</h3>
+<p>By default a callback fires only when a value arrives from the server (<code>ExecuteOnSync</code>). A value can change at other moments too, and each is opt-in:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Fires when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ExecuteOnSync</code></td>
+<td>A state update from the server changes the value (default)</td>
+</tr>
+<tr>
+<td><code>ExecuteOnServer</code></td>
+<td>Server code changes the value</td>
+</tr>
+<tr>
+<td><code>ExecuteOnPrediction</code></td>
+<td>Client code changes the value during prediction, including re-simulation</td>
+</tr>
+<tr>
+<td><code>ExecuteOnRollbackReset</code></td>
+<td>Rollback resets the value to the server's, before <code>OnRollback</code></td>
+</tr>
+<tr>
+<td><code>ExecuteAlways</code></td>
+<td>All of the above</td>
+</tr>
+</tbody>
+</table>
+<p>Combine what you need: <code>ExecuteOnSync | ExecuteOnServer</code> is the usual choice for logic that must run on both sides — the example project's controller uses exactly this to notice possession changes.</p>
+<h3 id="suppressing-a-notification">Suppressing a notification</h3>
+<p><code>SetValueWithoutOnSyncNotification(value)</code> writes a field without triggering its local callback. Use it when a callback would fight the code doing the write — for instance when applying a value the callback itself derived.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p>Only <code>ExecuteOnServer</code> matters here; without it a server-side write fires nothing. The callback runs synchronously inside the assignment, before the change is serialized.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p><code>ExecuteOnSync</code> callbacks run as the state is applied, batched after the entity's fields are updated — so a callback can safely read other fields of the same entity and see the same state version.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>Predicted writes fire callbacks only with <code>ExecuteOnPrediction</code>, and re-simulation makes that repeat for every rollback — keep such callbacks free of one-shot effects, or gate them with <code>EntityManager.InNormalState</code>. <code>ExecuteOnRollbackReset</code> exists for the opposite need: knowing that a predicted value was just discarded and replaced by the server's.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Reading the callback argument as the new value — it is the previous one; the field already holds the new value.</li>
+<li>Expecting a client callback for a value the client itself predicted — that needs <code>ExecuteOnPrediction</code>; the default fires only on server sync.</li>
+<li>Spawning sounds or particles in an <code>ExecuteOnPrediction</code> callback — rollback replays them on every correction; gate with <code>InNormalState</code>.</li>
+<li>Assuming a callback fires once per change — with sampling, several intermediate values may collapse into one; and rollback can re-fire prediction callbacks for the same tick.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="rpc-basics.html">rpc-basics.md</a></li>
+<li><a href="sync-flags.html">sync-flags.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

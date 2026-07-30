@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Core model in five minutes </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Core model in five minutes ">
+      
+      <meta name="description" content="The five ideas behind every LiteEntitySystem game - entities, fixed ticks, server authority, inputs up and state down, prediction with interpolation.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="core-model-in-five-minutes">Core model in five minutes</h1>
+
+<p>Every feature in LiteEntitySystem is a consequence of five ideas; this page walks through them once so the rest of the documentation can build on them without re-explaining.</p>
+<h2 id="the-world-is-a-set-of-entity-classes">The world is a set of entity classes</h2>
+<p>A game world is a collection of entity objects: players, projectiles, items, score counters. Entity classes are plain C# — no engine base classes — and both server and client register the same set of classes under the same ids, then construct instances of them. The server decides <em>which</em> entities exist; each client holds a synchronized copy of the entities it is allowed to see.</p>
+<p>Visuals are separate. An entity may create engine objects (a Unity GameObject, a sprite, a sound) as its <em>view</em>, typically when it is constructed, but the view is game code — the library synchronizes only entity state.</p>
+<h2 id="time-advances-in-fixed-ticks">Time advances in fixed ticks</h2>
+<p>All game logic runs at a fixed tick rate (<code>Tickrate</code>), chosen when the server starts. Once per tick the manager calls <code>Update()</code> on entities that update — this is the logic tick, and it is the only place where gameplay state should change. You pump the manager's own <code>Update()</code> from your engine loop every render frame; it accumulates real time and runs zero or more logic ticks internally.</p>
+<p>Rendering is decoupled from ticks. Entities also get <code>VisualUpdate()</code> once per render frame on the client — that is where views read interpolated values. The current tick number is <code>Tick</code> (a <code>ushort</code>, it wraps around).</p>
+<h2 id="the-server-owns-all-state">The server owns all state</h2>
+<p>The server's simulation is the single source of truth. Changed <code>SyncVar</code> fields are collected and sent to clients as delta-compressed state updates at the configured send rate; a joining client first receives the whole world as one compressed baseline, then only the changes. RPCs travel in the same stream, ordered relative to state. The consequences of that model — sampling, late joins, bandwidth — are on <a href="../sync/how-state-syncs.html">how state gets to clients</a>.</p>
+<p>A client cannot create or destroy synchronized entities and cannot make a lasting change to a <code>SyncVar</code>. Anything a client writes is either a prediction (corrected by the next server state) or a purely local change.</p>
+<h2 id="clients-send-inputs-not-state">Clients send inputs, not state</h2>
+<p>The only thing a client continuously uploads is its input: one small unmanaged struct per tick, delta-compressed, resent until the server confirms it. The server applies each input on the matching tick of its own simulation and moves the player's entities itself.</p>
+<p>This is why there are no client-to-server RPCs. For occasional non-input communication — buy an item, change loadout — there is a reliable request channel with a server response callback.</p>
+<h2 id="the-client-predicts-and-interpolates">The client predicts and interpolates</h2>
+<p>For entities owned by the local player, the client does not wait for the server: it applies its own input immediately, simulating those entities ahead of server time (client-side prediction). When a server state arrives, predicted fields are reset to the authoritative values and the entity is re-simulated from stored inputs — a rollback. If the prediction was right, the correction is invisible.</p>
+<p>Entities owned by others are shown slightly in the past instead: the client keeps a small buffer of server states and interpolates between the last two. So one client screen mixes two timelines — your own entities ahead of the server, everyone else behind it — and lag compensation on the server exists to reconcile the difference when you shoot at what you see.</p>
+<h2 id="data-flow-at-a-glance">Data flow at a glance</h2>
+<pre><code>            inputs: 1 struct per tick, delta-compressed, unreliable
+   ┌────────────────────────────────────────────────────────────────►
+CLIENT                                                           SERVER
+ predicts own entities                                    fixed-tick simulation,
+ interpolates the rest                                    single source of truth
+   ◄────────────────────────────────────────────────────────────────┐
+            on join: full world baseline (LZ4, reliable)
+            then:    state diffs + RPCs (at send rate, unreliable)
+</code></pre>
+<h2 id="one-cycle-side-by-side">One cycle, side by side</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server-tick" role="tab" aria-controls="tabpanel_1_server-tick" data-tab="server-tick" tabindex="0" aria-selected="true">Server tick</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client-frame" role="tab" aria-controls="tabpanel_1_client-frame" data-tab="client-frame" tabindex="-1">Client frame</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client-on-state-arrival" role="tab" aria-controls="tabpanel_1_client-on-state-arrival" data-tab="client-on-state-arrival" tabindex="-1">Client, on state arrival</a>
+</li>
+</ul>
+<section id="tabpanel_1_server-tick" role="tabpanel" data-tab="server-tick">
+
+<p>Read buffered client inputs for this tick → run <code>Update()</code> on entities → record history for lag compensation → every send-rate ticks, serialize changed fields per player and send diffs and pending RPCs.</p>
+</section>
+<section id="tabpanel_1_client-frame" role="tabpanel" data-tab="client-frame" aria-hidden="true" hidden="hidden">
+
+<p>Pump manager <code>Update()</code> → run due logic ticks (capture input, predict own entities, send input packet) → advance interpolation between the two buffered server states → call <code>VisualUpdate()</code> on entities so views read interpolated values.</p>
+</section>
+<section id="tabpanel_1_client-on-state-arrival" role="tabpanel" data-tab="client-on-state-arrival" aria-hidden="true" hidden="hidden">
+
+<p>Execute RPCs ordered with the state → reset predicted fields to server values → re-simulate own entities from stored inputs (rollback) → spawn/destroy entities the server reported → the state becomes the new interpolation target. During the re-simulation <code>EntityManager.InRollBackState</code> is true — entity code uses it (or <code>InNormalState</code>) to skip one-shot effects that would otherwise replay on every correction.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Changing gameplay state in <code>VisualUpdate()</code> — it runs per render frame, is never predicted or rolled back, and diverges from the server. Logic belongs in <code>Update()</code>.</li>
+<li>Expecting a server-side <code>SyncVar</code> write to be visible on clients in the same instant — it arrives with the next state update, delayed by send rate and network latency.</li>
+<li>Treating the client's <code>Tick</code> as server time — it is an independent counter that starts from zero at connection; the server timeline on the client is <code>ServerTick</code>.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><p><a href="installation.html">installation.md</a></p>
+</li>
+<li><p><a href="first-synced-entity.html">first-synced-entity.md</a></p>
+</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Client-side prediction and rollback </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Client-side prediction and rollback ">
+      
+      <meta name="description" content="How the client simulates ahead and corrects itself - what gets predicted, the rollback sequence, and how to write code that survives re-simulation.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="client-side-prediction-and-rollback">Client-side prediction and rollback</h1>
+
+<p>The owning client does not wait for the server: it applies input to its own entities immediately and shows the result. When the authoritative state arrives, the client resets those entities to it and replays the inputs the server has not processed yet — a rollback — so a correct prediction is invisible and a wrong one is quietly fixed.</p>
+<h2 id="what-is-predicted">What is predicted</h2>
+<p>Only entities the local player owns, and only their predicted fields. Everything else on the client is a replay of server state, smoothed by <a href="interpolation.html">interpolation</a>.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Predicted</th>
+<th>Rolled back</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Owned entity, normal field</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Owned entity, <code>NeverRollBack</code> field</td>
+<td>yes</td>
+<td>no — keeps the server value</td>
+</tr>
+<tr>
+<td>Remote entity, normal field</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Remote entity, <code>AlwaysRollback</code> field</td>
+<td>yes, if client code writes it</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Local predicted spawn</td>
+<td>yes</td>
+<td>yes, from its creation tick onward</td>
+</tr>
+</tbody>
+</table>
+<p>Details of that choice per field are in <a href="rollback-per-field.html">controlling rollback</a>.</p>
+<h2 id="the-rollback-sequence">The rollback sequence</h2>
+<p>When the client decides to advance to the next server state, this happens in one go, before any of it is rendered:</p>
+<ol>
+<li><strong>Reset.</strong> For every entity with predicted changes: <code>OnBeforeRollback()</code>, then predicted fields are restored to the last values the server confirmed, then <code>OnRollback()</code> on the entity and on its custom-rollback syncable fields.</li>
+<li><strong>Catch-up replay.</strong> Stored inputs the server has already processed are replayed once, so the entity reaches the state matching the server's processed tick — this is what makes change callbacks fire against the right baseline.</li>
+<li><strong>Apply the new state.</strong> RPCs of that state execute, SyncVars take their authoritative values, construction callbacks and change notifications run.</li>
+<li><strong>Clean up predicted spawns.</strong> Locally spawned predicted entities the server has now accounted for are removed — replaced by the real ones that arrived in step 3.</li>
+<li><strong>Re-simulate.</strong> <code>UpdateMode</code> switches to <code>PredictionRollback</code> and every remaining unconfirmed input is replayed in order: for each tick the controller's <code>CurrentInput</code> is loaded from history and the owned entities' <code>Update()</code> runs again.</li>
+<li><strong>Resume.</strong> The tick counter returns to the client's current tick and normal simulation continues.</li>
+</ol>
+<p>Steps 1, 2 and 5 run with <code>EntityManager.InRollBackState == true</code>.</p>
+<h2 id="the-client-frame-in-full">The client frame in full</h2>
+<p>Where that sequence sits inside one call to the client manager's <code>Update()</code>:</p>
+<pre><code class="lang-mermaid">flowchart TD
+    A[&quot;ClientEntityManager.Update&quot;] --&gt; B
+
+    subgraph LogicTicks[&quot;Logic ticks (zero or more)&quot;]
+        B[&quot;Promote pending input to CurrentInput, store in history&quot;] --&gt; C
+        C[&quot;Update: owned, local and UpdateOnClient entities&quot;]
+    end
+
+    C --&gt; D[&quot;Send buffered inputs&quot;]
+    D --&gt; E[&quot;Execute RPCs of the pending state, run change callbacks&quot;]
+    E --&gt; F{&quot;Time to advance to the next server state?&quot;}
+    F --&gt;|no| VIS
+
+    subgraph GoToNextState[&quot;Advance to next state&quot;]
+        G1[&quot;1. OnBeforeRollback, reset predicted fields, OnRollback&quot;] --&gt; G2
+        G2[&quot;2. Replay inputs already processed by the server&quot;] --&gt; G3
+        G3[&quot;3. Apply state: SyncVars, RPCs, OnConstructed / OnDestroy, OnLateConstructed, change callbacks&quot;] --&gt; G4
+        G4[&quot;4. Remove predicted spawns the server has accounted for&quot;] --&gt; G5
+        G5[&quot;5. Re-simulate remaining unconfirmed inputs&quot;]
+    end
+
+    F --&gt;|yes| G1
+    G5 --&gt; VIS[&quot;VisualUpdate for entities in the alive set&quot;]
+</code></pre>
+<p>Steps 1, 2 and 5 of <code>GoToNextState</code> are the rollback; everything else is ordinary frame work. The mirror image on the other side is in <a href="server-update-flow.html">server update flow</a>.</p>
+<h2 id="writing-rollback-safe-code">Writing rollback-safe code</h2>
+<p><code>Update()</code> of a predicted entity may run many times for the same tick. Everything in it must be a pure function of state and input:</p>
+<pre><code class="lang-csharp">protected override void Update()
+{
+    // fine: derived from state + input, identical every replay
+    Position.Value += _velocity * EntityManager.DeltaTimeF;
+
+    if (_health.Value &lt;= 0 &amp;&amp; EntityManager.InNormalState)
+        SpawnDeathEffect();   // one-shot: guard it
+}
+</code></pre>
+<p>Rules that follow:</p>
+<ul>
+<li><strong>Side effects need <code>InNormalState</code>.</strong> Sounds, particles, camera shake, UI messages — anything the player perceives once. Without the gate, every correction replays them.</li>
+<li><strong>No nondeterministic sources.</strong> Wall-clock time, unseeded randomness, engine frame time, live input polling — all produce different results on replay. Use <code>EntityManager.Tick</code>, <code>DeltaTimeF</code>, and input from history.</li>
+<li><strong>No engine writes.</strong> Do not move transforms or spawn objects from predicted <code>Update</code>; write to SyncVars and let views read <a href="interpolation.html">interpolated values</a>.</li>
+<li><strong>Keep plain fields consistent.</strong> Non-<code>SyncVar</code> fields are not reset by rollback. A plain accumulator that <code>Update</code> mutates will drift with every replay — derive such values from synchronized state instead, or accept that they are view-only.</li>
+</ul>
+<h2 id="determinism-expectations">Determinism expectations</h2>
+<p>Prediction does not require bit-exact float determinism: plain floats and kinematic movement (character-controller style) run stably, and small divergences are absorbed by the correction. What does not work out of the box is full rigidbody physics — rewinding a physics engine needs control it usually does not expose. Predicting kinematic motion and validating hits with <a href="lag-compensation-in-depth.html">lag compensation</a> covers most shooter and action needs.</p>
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>One-shot effects in predicted <code>Update</code> without <code>InNormalState</code> — they fire again on every correction.</li>
+<li>Randomness or wall-clock time in predicted code — every replay computes something different, and the entity visibly fights the server.</li>
+<li>Expecting plain C# fields to be rewound — only predicted SyncVars and custom-rollback syncable fields are; everything else keeps whatever the last replay left.</li>
+<li>Polling input inside <code>Update</code> — re-simulation would feed the current frame's input into a past tick.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="rollback-per-field.html">rollback-per-field.md</a></li>
+<li><a href="predicted-spawning.html">predicted-spawning.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

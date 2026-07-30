@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Hosting: dedicated and listen-server </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Hosting: dedicated and listen-server ">
+      
+      <meta name="description" content="Running the server - dedicated headless builds, listen-server via localhost, and resetting the world between matches.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="hosting-dedicated-and-listen-server">Hosting: dedicated and listen-server</h1>
+
+<p>The same <code>ServerEntityManager</code> covers both deployment models: a headless process players connect to, or a server living inside a player's own client process with the local client connecting over loopback.</p>
+<h2 id="dedicated-server">Dedicated server</h2>
+<p>A headless build runs only the server manager and its game logic — no views, no input polling.</p>
+<p>Two practical points. <strong>Frame rate</strong>: cap the process at the tick rate, since rendering nothing at 1000 fps only burns CPU — in Unity that is <code>Application.targetFrameRate</code> under <code>UNITY_SERVER</code>, elsewhere your own loop's pacing. <strong>Assemblies</strong>: with the <a href="../getting-started/registering-entity-types.html">server/client variant pattern</a> the build contains no client classes at all, so no engine-view code is compiled or shipped; registration then differs per side by construction rather than by <code>#if</code>.</p>
+<p>Server-only entity types — <code>AiControllerLogic</code> subclasses — are registered here and not on clients, as they are never synchronized.</p>
+<h2 id="listen-server">Listen-server</h2>
+<p>For a player-hosted game, run both managers in one process and let the local client connect to <code>localhost</code>:</p>
+<pre><code class="lang-csharp">// host: start the server, then connect the local client to it
+_server.Start(port: 10515);
+_client.Connect(&quot;localhost&quot;, port: 10515);
+</code></pre>
+<p>Nothing is special-cased: the local client goes through the same handshake, baseline and input pipeline as a remote one, over a loopback connection with near-zero latency. That uniformity is the point — one code path to maintain and to debug.</p>
+<p>The Unity example ships this as its <strong>Host</strong> button: it loads the server scene additively and connects the client to <code>localhost</code>. Note the scene detail there — the additive load uses a separate physics scene, so the server's simulation and the client's do not share one engine world.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Because the host's own client sees near-zero latency, a listen-server hides latency bugs. Test with simulated latency, or against a second machine, before shipping.</p>
+</div>
+<h2 id="resetting-the-world">Resetting the world</h2>
+<p><code>Reset()</code> destroys every entity, clears filters and singletons and stops the internal clock, returning a manager to its pre-first-update state while keeping its registration and transport. Use it between matches or rounds instead of building a new manager.</p>
+<p>On the server, players are cleared as well — they must be re-added, so in practice a reset goes together with reconnecting or re-admitting the connected peers. On the client, drop the manager on disconnect and create a fresh one for the next session, as described in <a href="../getting-started/starting-a-client.html">starting a client</a>.</p>
+<p>Local singletons receive <code>Destroy()</code> during a reset, so anything they hold is released with the world.</p>
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>An uncapped headless loop — the manager only runs ticks at its fixed rate, so extra iterations are pure waste.</li>
+<li>Sharing engine state between the two managers in a listen-server — with one physics world or one scene graph, the server's simulation and the client's prediction corrupt each other; keep them separated as the example does.</li>
+<li>Shipping client-side registration in a dedicated build — it is not an error, but it drags view code and its dependencies into the server binary.</li>
+<li>Reusing a client manager after a reset instead of creating a new one per connection — session state (player id, buffers) belongs to that connection.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="limits.html">limits.md</a></li>
+<li><a href="transport.html">transport.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

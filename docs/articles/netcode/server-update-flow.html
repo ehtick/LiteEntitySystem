@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Server update flow </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Server update flow ">
+      
+      <meta name="description" content="What the server does in one logic tick, step by step - requests, inputs, entity updates, history, and packet composition.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="server-update-flow">Server update flow</h1>
+
+<p>Under the hood, one server tick is a fixed sequence: consume what clients sent, advance the simulation, record history, then — on sending ticks — compose a packet per player. Knowing the order explains most &quot;why did this run before that&quot; questions.</p>
+<h2 id="the-sequence">The sequence</h2>
+<pre><code class="lang-mermaid">flowchart TD
+    A[&quot;ServerEntityManager.Update&quot;] --&gt; B
+
+    subgraph Tick[&quot;One logic tick&quot;]
+        B[&quot;1. Read pending client requests&quot;] --&gt; C
+        C[&quot;2. Apply buffered player inputs to controllers&quot;] --&gt; D
+        D[&quot;3. Update all Updateable entities&quot;] --&gt; E
+        E[&quot;4. OnLateConstructed, refresh construct RPCs, write lag-compensation history&quot;]
+    end
+
+    E --&gt; F{&quot;5. Sending tick, and players connected?&quot;}
+    F --&gt;|no| Z[&quot;done&quot;]
+    F --&gt;|yes| G
+
+    subgraph Send[&quot;Packet composition, per player&quot;]
+        G[&quot;6. Baseline for new or resyncing players (OnSyncRequested, full state)&quot;] --&gt; H
+        H[&quot;7. Delta state: pending RPCs + fields changed since that player's last acknowledged tick&quot;]
+    end
+
+    H --&gt; I[&quot;8. Trigger transport send&quot;]
+</code></pre>
+<h2 id="step-by-step">Step by step</h2>
+<h3 id="1-client-requests">1. Client requests</h3>
+<p>Reliable <a href="../sync/client-requests.html">requests</a> that arrived since the previous tick are decoded and their handlers run — before any entity updates, so a request's effects are visible to the whole tick.</p>
+<p>Requests travel on a reliable ordered channel while inputs travel unreliably, so a request is not synchronized with the input stream: it lands on the tick it arrived for, not on the tick the player pressed the button.</p>
+<h3 id="2-inputs">2. Inputs</h3>
+<p>For each player, the input matching the tick being simulated is taken from their buffer and written to <code>CurrentInput</code> on their controllers. A missing input leaves the previous one in effect. Bots have no network input — their controllers produce commands directly in <code>BeforeControlledUpdate</code>.</p>
+<h3 id="3-entity-updates">3. Entity updates</h3>
+<p>Every entity with <code>EntityFlags.Updateable</code> runs <code>Update()</code>, in creation order. This is where the authoritative simulation happens: movement from input, collisions, hit checks (with <a href="lag-compensation-in-depth.html">lag compensation</a> if the entity asks for it), damage, destruction.</p>
+<p>Entities created during this step do not update on the tick they were created — they start with the next one.</p>
+<h3 id="4-post-update-bookkeeping">4. Post-update bookkeeping</h3>
+<p><code>OnLateConstructed</code> runs for everything constructed this tick. Construct RPCs created earlier in the tick are refreshed so they carry the entity's state <em>after</em> the update rather than at the moment of creation. Then the current values of every <code>LagCompensated</code> field are written into history.</p>
+<h3 id="5-send-gate">5. Send gate</h3>
+<p>State is composed only on ticks that match <a href="tick-model.html"><code>ServerSendRate</code></a>, and only if at least one player is connected. Otherwise the tick ends here — the simulation keeps running regardless.</p>
+<h3 id="6-baselines">6. Baselines</h3>
+<p>A player who just connected, or one who has fallen too far behind to patch incrementally, gets a full state. Composing it calls <code>OnSyncRequested</code> on entities and syncable fields, which is how <a href="../sync/syncablefield-basics.html">syncable types</a> re-send their entire contents. The baseline is sent reliably and compressed.</p>
+<h3 id="7-delta-states">7. Delta states</h3>
+<p>For every other player, one packet carries their pending RPCs plus the fields that changed since the last state that player acknowledged. Each RPC carries its tick so the client can execute it at the right moment instead of in a burst after a lag spike. <a href="../sync/sync-groups.html">Sync groups</a> and per-field visibility are applied here, per player.</p>
+<h3 id="8-flush">8. Flush</h3>
+<p>The transport is told to send now rather than at its own next opportunity, shaving a few milliseconds off the round trip.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Local singletons implementing <code>ILocalSingletonWithUpdate</code> are driven around this sequence: <code>Update</code> before the tick's work and <code>LateUpdate</code> after the entity updates.</p>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="prediction-and-rollback.html">prediction-and-rollback.md</a></li>
+<li><a href="../sync/how-state-syncs.html">../sync/how-state-syncs.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

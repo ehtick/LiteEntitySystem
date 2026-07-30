@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Debugging and diagnostics </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Debugging and diagnostics ">
+      
+      <meta name="description" content="Diagnosing networked behavior - the debug overlay values, frame and SyncVar inspection, and what common symptoms usually mean.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="debugging-and-diagnostics">Debugging and diagnostics</h1>
+
+<p>Most networking bugs look identical from the outside — &quot;it's laggy&quot;, &quot;it teleports&quot; — so the first tool is not a debugger but an overlay of the manager's own numbers, which distinguish a bandwidth problem from a jitter problem from a game-code problem.</p>
+<h2 id="the-overlay">The overlay</h2>
+<p>Build it once and keep it in every development build; the example project's client draws exactly this.</p>
+<p><strong>DebugOverlay.cs</strong></p>
+<pre><code class="lang-csharp">public string BuildText(ClientEntityManager m) =&gt; $@&quot;
+Tick: {m.Tick}  ServerTick: {m.ServerTick}
+LastProcessed: {m.LastProcessedTick}  StoredCommands: {m.StoredCommands}
+Entities: {m.EntitiesCount}  StateSize: {m.StateSize} B
+ServerInputBuffer: {m.ServerInputBuffer}
+LerpBuffer: {m.LerpBufferCount} ({m.LerpBufferTimeLength:F3} s)
+Jitter: {m.NetworkJitter:F3} / avg {m.AverageJitter:F3}
+PendingToRemove: {m.PendingToRemoveEntites}&quot;;
+</code></pre>
+<p>What each value tells you is in <a href="adaptive-timing.html">adaptive timing</a>; the point of showing them together is that their <em>combination</em> identifies the problem.</p>
+<h2 id="frame-and-field-inspection">Frame and field inspection</h2>
+<p><code>GetCurrentFrameDebugInfo(DebugFrameModes)</code> returns a one-line description of the current update — including, on the client, whether it is a normal frame or a rollback and which replay step is running. The modes filter what you want to see (<code>Client</code>, <code>Server</code>, <code>Rollback</code>, and combinations), so you can log rollbacks only.</p>
+<p><code>GetEntitySyncVarInfo(entity, printer)</code> walks an entity's synchronized fields and reports each name and value through your <code>IEntitySyncVarInfoPrinter</code> implementation — the fastest way to answer &quot;what does the server think this entity's state is&quot; versus what the client shows. <code>GetDiagnosticData</code> fills a dictionary with per-entity size information from the current state, useful when a state grows unexpectedly.</p>
+<h2 id="reading-the-symptoms">Reading the symptoms</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Usually means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Remote entities move in steps</td>
+<td>Views read <code>.Value</code> instead of <code>InterpolatedValue</code>, or the field lacks <code>SyncFlags.Interpolated</code></td>
+</tr>
+<tr>
+<td>Remote entities stall, then jump</td>
+<td>State buffer starving — check <code>LerpBufferCount</code> and jitter; loss or bandwidth, not tuning</td>
+</tr>
+<tr>
+<td>Your own entity rubber-bands</td>
+<td>Prediction disagrees with the server: nondeterminism in <code>Update</code>, or state changed outside the simulation</td>
+</tr>
+<tr>
+<td>Effects play twice on corrections</td>
+<td>One-shot code in predicted <code>Update</code> without <code>EntityManager.InNormalState</code></td>
+</tr>
+<tr>
+<td>Shots visibly miss where you aimed</td>
+<td>Fields missing <code>SyncFlags.LagCompensated</code>, or the hit check runs outside input processing</td>
+</tr>
+<tr>
+<td>A field never updates on other clients</td>
+<td><code>SyncFlags.OnlyForOwner</code>, or a <a href="../sync/sync-groups.html">sync group</a> disabled for that player</td>
+</tr>
+<tr>
+<td>Nothing updates at all</td>
+<td>Missing <code>[EntityFlags(EntityFlags.Updateable)]</code>, or the manager's <code>Update()</code> is not pumped</td>
+</tr>
+<tr>
+<td>Client rejected at join</td>
+<td>Registration mismatch — the type-map hash differs between builds</td>
+</tr>
+<tr>
+<td>State size grows over time</td>
+<td>Entities not destroyed, or a <code>SyncVar</code> written every tick with a slightly different float</td>
+</tr>
+</tbody>
+</table>
+<h2 id="making-problems-reproducible">Making problems reproducible</h2>
+<p>Reproduce network conditions locally instead of guessing: LiteNetLib can simulate latency and loss, and the example project enables ~50–60 ms of simulated latency by default precisely so prediction and interpolation behave as they will in production. Testing exclusively on a loopback connection hides every class of bug this documentation's netcode section is about.</p>
+<p>For prediction bugs specifically, log <code>GetCurrentFrameDebugInfo(DebugFrameModes.ClientAndRollback)</code> around the suspect code: seeing the same tick logged several times with different values is the signature of nondeterministic predicted code.</p>
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Debugging netcode on a loopback connection only — zero latency and zero jitter hide exactly the bugs you are looking for.</li>
+<li>Reading diagnostics as game state — <code>StoredCommands</code>, buffer depths and jitter describe the connection, not the world.</li>
+<li>Fixing rubber-banding by weakening prediction (moving logic to the server or disabling rollback for a field) before finding the nondeterminism that caused it.</li>
+<li>Leaving <code>Logger.LoggerImpl</code> unassigned — the library reports registration mismatches, missing <code>base.RegisterRPC</code> and compensation misses through it, and stays silent without it.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="adaptive-timing.html">adaptive-timing.md</a></li>
+<li><a href="prediction-and-rollback.html">prediction-and-rollback.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Client to server: requests </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Client to server: requests ">
+      
+      <meta name="description" content="The reliable client-to-server request channel on HumanControllerLogic - sending with a result callback, subscribing on the server, and its limits.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="client-to-server-requests">Client to server: requests</h1>
+
+<p>Clients have two upward channels: the per-tick input struct, and <em>requests</em> — reliable one-off messages sent from a <code>HumanControllerLogic</code> with an optional success callback, for the actions that don't belong in input.</p>
+<h2 id="when-to-use-this">When to use this</h2>
+<ul>
+<li>Occasional intentional actions: buy an item, pick a loadout, vote, change team, use a menu.</li>
+<li>Anything the server may accept or reject, where the client needs to know which.</li>
+</ul>
+<h2 id="when-not-to">When not to</h2>
+<ul>
+<li>Per-tick movement and firing — that is the <a href="../getting-started/adding-a-player.html">input struct</a>, which is delta-compressed, redundant and prediction-aware; requests are not.</li>
+<li>Server-to-client messaging — that direction is <a href="rpc-basics.html">RPCs</a>.</li>
+<li>High-frequency streams — every request is a reliable packet; a request per tick is the wrong tool.</li>
+</ul>
+<h2 id="minimal-example">Minimal example</h2>
+<p><strong>ShopController.cs</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+using LiteNetLib.Utils;
+
+public struct BuyItemRequest : INetSerializable
+{
+    public ushort ItemId;
+    public byte Count;
+
+    public void Serialize(NetDataWriter writer)
+    {
+        writer.Put(ItemId);
+        writer.Put(Count);
+    }
+
+    public void Deserialize(NetDataReader reader)
+    {
+        ItemId = reader.GetUShort();
+        Count = reader.GetByte();
+    }
+}
+
+// auto-serialized class form: properties with get AND set are required —
+// that is what LiteNetLib's NetSerializer reflects over
+public class SellItemRequest
+{
+    public ushort ItemId { get; set; }
+    public byte Count { get; set; }
+    public string Reason { get; set; }
+}
+
+public class ShopController : HumanControllerLogic&lt;PlayerInput, MyPlayer&gt;
+{
+    public ShopController(EntityParams entityParams) : base(entityParams)
+    {
+        if (IsServer)
+        {
+            SubscribeToClientRequestStruct&lt;BuyItemRequest&gt;(OnBuyItem);
+            SubscribeToClientRequest&lt;SellItemRequest&gt;(OnSellItem);
+        }
+    }
+
+    // client side
+    public void RequestBuy(ushort itemId, byte count) =&gt;
+        SendRequestStruct(new BuyItemRequest { ItemId = itemId, Count = count },
+            success =&gt; { /* update the shop UI */ });
+
+    public void RequestSell(ushort itemId, byte count) =&gt;
+        SendRequest(new SellItemRequest { ItemId = itemId, Count = count, Reason = &quot;manual&quot; },
+            success =&gt; { /* update the shop UI */ });
+
+    // server side: the bool becomes the client's callback argument
+    private bool OnBuyItem(BuyItemRequest request)
+    {
+        if (!CanAfford(request)) 
+            return false;
+        GrantItem(request);
+        return true;
+    }
+
+    private bool OnSellItem(SellItemRequest request)
+    {
+        // same contract, reflection-serialized payload
+        return true;
+    }
+
+    private bool CanAfford(BuyItemRequest request) =&gt; true;
+    private void GrantItem(BuyItemRequest request) { }
+}
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="two-payload-styles">Two payload styles</h3>
+<p><strong>Structs with explicit serialization</strong> — <code>SendRequestStruct&lt;T&gt;</code> / <code>SubscribeToClientRequestStruct&lt;T&gt;</code>, where <code>T : struct, INetSerializable</code>. You write <code>Serialize</code>/<code>Deserialize</code> yourself; no allocation per send, and full control over the bytes.</p>
+<p><strong>Auto-serialized classes</strong> — <code>SendRequest&lt;T&gt;</code> / <code>SubscribeToClientRequest&lt;T&gt;</code>, where <code>T : class, new()</code>. LiteNetLib's <code>NetSerializer</code> reflects over the type, so the payload must be declared as <strong>properties with both a getter and a setter</strong> — plain fields are ignored, and a get-only property will not round-trip. Handy for menu-style data with strings, at the cost of an allocation and reflection.</p>
+<p>Types nested inside an auto-serialized class need registering first with <code>RegisterClientCustomType&lt;T&gt;</code>, either as an <code>INetSerializable</code> struct or with explicit write/read delegates.</p>
+<h3 id="the-result-callback">The result callback</h3>
+<p>Both send methods have an overload taking <code>Action&lt;bool&gt;</code>. The server handler's return value decides what the client receives: subscribe with a <code>Func&lt;T, bool&gt;</code> to answer explicitly, or with an <code>Action&lt;T&gt;</code> when the answer is always success. The callback is invoked on the requesting client when the response arrives — treat it as a confirmation, not as data transport; anything the client must <em>know</em> afterwards should be state it can read.</p>
+<h3 id="where-subscriptions-live">Where subscriptions live</h3>
+<p>Subscriptions are per-controller instance, made on the server — the controller's constructor is the natural place. Since a controller exists only for its owning player, a handler always knows who sent the request: the controller's owner. There is no way to spoof another player's identity through this channel.</p>
+<h3 id="reliability-and-ordering">Reliability and ordering</h3>
+<p>Requests are sent reliable ordered on their own: none are lost, and they arrive in the order the client sent them. They are processed on the server at the start of a logic tick, before entity updates.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p>Pending requests are read at the beginning of the tick, so a handler's changes are visible to every entity update in that same tick. A request addressed to a controller that no longer exists (the player disconnected, the controller was replaced) is dropped. Malformed payloads are logged and ignored rather than throwing.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p>Only the owning client can send — the controller exists nowhere else. Callbacks are keyed by request id, so several requests may be in flight at once; each callback fires when its own response arrives.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>Sending is refused during rollback re-simulation: the call is ignored with a warning, and a callback-taking overload reports failure immediately. Send requests from <code>VisualUpdate</code> or from UI code (both run outside re-simulation), never from <code>Update</code> of a predicted entity.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Sending requests from predicted <code>Update</code> code — re-simulation would repeat them, so the library ignores them during rollback and your action silently never happens.</li>
+<li>Using requests for movement or firing — they are reliable and unbuffered, so a packet loss stalls the queue; continuous player intent belongs in the input struct.</li>
+<li>Treating the <code>bool</code> callback as data — it is a yes/no receipt; results the client needs to act on belong in synchronized state or an RPC.</li>
+<li>Declaring an auto-serialized request class with fields instead of <code>{ get; set; }</code> properties — the reflection-based serializer skips them and the payload arrives empty.</li>
+<li>Subscribing on the client — subscriptions handle incoming requests, which only ever happens on the server; guard with <code>IsServer</code>.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="syncablefield-basics.html">syncablefield-basics.md</a></li>
+<li><a href="rpc-basics.html">rpc-basics.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

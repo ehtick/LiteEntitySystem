@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>The tick model </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="The tick model ">
+      
+      <meta name="description" content="Fixed logic ticks - tick rate and send rate, delta time, the wrapping tick counter, and how the manager turns real time into ticks.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="the-tick-model">The tick model</h1>
+
+<p>Game logic advances in fixed steps called ticks: the server picks the rate, both sides run identical step sizes, and every prediction, rollback and lag-compensation mechanism is counted in ticks rather than seconds.</p>
+<h2 id="choosing-the-rates">Choosing the rates</h2>
+<p>Two numbers are set when the server starts: how often logic runs, and how often state is sent.</p>
+<p><code>framesPerSecond</code> — the logic tick rate. Higher means finer simulation, lower input latency and less time between a hit happening and everyone learning about it, at proportionally more CPU on the server.</p>
+<ul>
+<li><strong>60</strong> — the modern standard for competitive shooters, and what large titles have run at for years. Kills register faster and the &quot;shot me from behind a wall&quot; cases shrink, because each client's view of the world is less stale.</li>
+<li><strong>30</strong> — a solid default for action games, and the practical ceiling on mobile.</li>
+<li><strong>15</strong> — enough for slow-paced gameplay: strategy, turn-flavored or puzzle games.</li>
+</ul>
+<p>There is no universally right value, only that trade-off against server load — for a competitive shooter, spend it on 60.</p>
+<p><code>ServerSendRate</code> — how many ticks pass between state updates: <code>EqualToFPS</code> (every tick), <code>HalfOfFPS</code>, <code>ThirdOfFPS</code>. Lowering it cuts bandwidth without changing simulation quality; the cost is a longer interpolation delay for remote entities, since clients receive fewer snapshots to blend between.</p>
+<p>The client is told both values in the baseline, so <code>Tickrate</code>, <code>DeltaTime</code> and <code>ServerSendRate</code> are read-only there.</p>
+<h2 id="time-in-entity-code">Time in entity code</h2>
+<p><strong>Cave.cs</strong></p>
+<pre><code class="lang-csharp">protected override void Update()
+{
+    // fixed logic tick: the same value on server and client, every tick
+    _timer += EntityManager.DeltaTimeF;
+
+    if (_timer &gt;= 5f)
+    {
+        _timer = 0f;
+        Collapse();
+    }
+}
+</code></pre>
+<p><code>DeltaTimeF</code> (float) and <code>DeltaTime</code> (double) are exactly <code>1 / Tickrate</code> — constant, identical on both sides, and the only correct time source inside <code>Update</code>. Never use engine frame time there: <code>Time.deltaTime</code> varies per frame and would make prediction diverge from the server. For per-frame view code, <code>VisualDeltaTimeF</code> gives the render-frame delta, and <code>LerpFactor</code> reports how far the current frame sits between two logic ticks.</p>
+<h2 id="the-tick-counter">The tick counter</h2>
+<p><code>EntityManager.Tick</code> is a <code>ushort</code> that wraps around at 65535 — about 18 minutes at 60 ticks per second, 36 at 30. Comparing tick numbers with <code>&lt;</code> or <code>&gt;</code> breaks at that boundary, so all comparisons go through <code>Utils.SequenceDiff</code>, which returns the signed distance accounting for wraparound:</p>
+<pre><code class="lang-csharp">if (Utils.SequenceDiff(deadlineTick, EntityManager.Tick) &lt;= 0)
+    OnDeadlineReached();
+</code></pre>
+<p>The client's <code>Tick</code> is its own counter, starting from zero at connection — it is not comparable to server tick numbers at all. The server's timeline as seen by the client is <code>ServerTick</code>. Both wrap, and both need <code>SequenceDiff</code>.</p>
+<h2 id="how-the-manager-advances-time">How the manager advances time</h2>
+<p><code>Update()</code> on the manager is the pump. It measures real time since the previous call, accumulates it, and runs as many logic ticks as fit — zero if the frame was short, several if the frame was long — then leaves the remainder for the next call. Rendering is untouched by this: you call <code>Update()</code> once per frame, and the fixed steps happen inside.</p>
+<p>Two consequences worth knowing. A long stall (loading, breakpoint) does not replay the missing seconds tick by tick — the manager caps how many ticks one call may run and drops the rest. And on the client the effective step length is nudged slightly by the adaptive clock described in <a href="adaptive-timing.html">adaptive timing</a>, which keeps the state buffer and the server's input buffer healthy.</p>
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Using engine frame time inside <code>Update</code> — the step must be <code>DeltaTimeF</code>, or client and server compute different results and prediction fights the server.</li>
+<li>Comparing ticks with <code>&lt;</code>/<code>&gt;</code> — correct until the counter wraps, then subtly broken; use <code>Utils.SequenceDiff</code>.</li>
+<li>Comparing the client's <code>Tick</code> to a server tick value — different origins; use <code>ServerTick</code> for the server timeline.</li>
+<li>Assuming a fixed number of ticks between a server change and its arrival — the send rate sets the sampling, but latency and jitter set the delay.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="update-vs-visualupdate.html">update-vs-visualupdate.md</a></li>
+<li><a href="adaptive-timing.html">adaptive-timing.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>SyncFlags reference </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="SyncFlags reference ">
+      
+      <meta name="description" content="Every SyncFlags value - interpolation, lag compensation, per-owner visibility, rollback control and sync groups - with when to use each.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="syncflags-reference">SyncFlags reference</h1>
+
+<p><code>[SyncVarFlags(...)]</code> configures what the library does with a field beyond copying it: whether it interpolates, keeps history, reaches only some players, or takes part in rollback.</p>
+<h2 id="the-flags">The flags</h2>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+<th>Typical use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>None</code></td>
+<td>Plain synchronized value</td>
+<td>Default; ammo counts, phase enums</td>
+</tr>
+<tr>
+<td><code>Interpolated</code></td>
+<td>Keeps a smoothed companion in <code>InterpolatedValue</code></td>
+<td>Position, rotation — anything a view reads per frame</td>
+</tr>
+<tr>
+<td><code>LagCompensated</code></td>
+<td>Value history is recorded and rewound during hit checks</td>
+<td>Position/rotation of shootable entities</td>
+</tr>
+<tr>
+<td><code>OnlyForOwner</code></td>
+<td>Sent only to the entity's owner</td>
+<td>Owner-private data on a shared entity</td>
+</tr>
+<tr>
+<td><code>OnlyForOtherPlayers</code></td>
+<td>Sent to everyone except the owner</td>
+<td>Values the owner derives locally but others must receive</td>
+</tr>
+<tr>
+<td><code>AlwaysRollback</code></td>
+<td>Participates in rollback even when the entity is not owned</td>
+<td>Enemy health, for damage prediction</td>
+</tr>
+<tr>
+<td><code>NeverRollBack</code></td>
+<td>Excluded from rollback even when the entity is owned</td>
+<td>Values that must not be rewound by re-simulation</td>
+</tr>
+<tr>
+<td><code>SyncGroup1</code>…<code>SyncGroup5</code></td>
+<td>Field belongs to a toggleable per-player group</td>
+<td>Distance culling, visibility systems</td>
+</tr>
+</tbody>
+</table>
+<p>Flags combine with <code>|</code>. Applied to a class instead of a field, the attribute becomes the default for every SyncVar in it; a field-level attribute replaces that default rather than adding to it.</p>
+<h2 id="minimal-example">Minimal example</h2>
+<p><strong>Fighter.cs</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+
+[EntityFlags(EntityFlags.Updateable)]
+public class Fighter : PawnLogic
+{
+    // rendered every frame and shot at → interpolate and keep history
+    [SyncVarFlags(SyncFlags.Interpolated | SyncFlags.LagCompensated)]
+    public SyncVar&lt;float&gt; X;
+
+    // other clients predict damage on it → must roll back for them too
+    [SyncVarFlags(SyncFlags.AlwaysRollback)]
+    public SyncVar&lt;byte&gt; Health;
+
+    // nobody else's business
+    [SyncVarFlags(SyncFlags.OnlyForOwner)]
+    public SyncVar&lt;byte&gt; Stamina;
+
+    // plain state
+    public SyncVar&lt;byte&gt; Team;
+
+    public Fighter(EntityParams entityParams) : base(entityParams) { }
+}
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="interpolation-and-history">Interpolation and history</h3>
+<p><code>Interpolated</code> costs a second copy of the value on the client and requires the type to have a lerp function — built in for primitives and <code>FloatAngle</code>, <a href="syncvar.html">registered by you</a> for engine types. <code>LagCompensated</code> costs a ring buffer of <code>MaxHistorySize</code> ticks on the server. Both belong on the same handful of fields — the ones describing where something is — and on nothing else.</p>
+<h3 id="visibility-flags">Visibility flags</h3>
+<p><code>OnlyForOwner</code> and <code>OnlyForOtherPlayers</code> filter a single field's recipients; they are the field-level counterpart of <code>EntityFlags.OnlyForOwner</code>, which hides an entire entity. Use them for owner-private data on an entity everyone can see — a pawn's exact stamina, an aim vector nobody else needs. A field nobody but the owner reads is also a field the server never has to send to the rest.</p>
+<h3 id="rollback-control">Rollback control</h3>
+<p>By default rollback covers fields of entities the client owns. Two flags override that: <code>AlwaysRollback</code> opts a field in even on entities owned by others (the standard choice for health, so a client can predict the damage it deals), <code>NeverRollBack</code> opts a field out even on owned entities. The reasoning behind each choice is on <a href="../netcode/rollback-per-field.html">controlling rollback per field</a>.</p>
+<h3 id="sync-groups">Sync groups</h3>
+<p><code>SyncGroup1</code>…<code>SyncGroup5</code> tag a field as belonging to a group the server can switch off per player — the mechanism behind distance culling and visibility systems. RPCs carry the same group tags through <code>ExecuteFlags</code>. See <a href="sync-groups.html">sync groups</a>; a field with no group tag is always sent.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p>Flags shape packet composition: visibility flags decide recipients per field, group tags are checked against each player's enabled groups, <code>LagCompensated</code> fields get their history written every tick. <code>Interpolated</code> costs nothing here — the server holds only the authoritative value.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p><code>Interpolated</code> maintains the smoothed companion; group-disabled fields simply stop updating (the last received value stays); <code>OnlyForOwner</code> fields on remote entities never arrive at all and hold their defaults — never make client logic depend on such a field of another player's entity.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>Ownership plus <code>AlwaysRollback</code>/<code>NeverRollBack</code> determine the rolled-back set. Fields outside it keep whatever the last state delivered, without being rewound or re-derived.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>A field-level <code>[SyncVarFlags]</code> on a class that also has one — the field's attribute replaces the class default, it does not merge; restate the flags you still need.</li>
+<li><code>Interpolated</code> on a value that snaps (health, ammo, a mode enum) — you get a meaningless midpoint between two states while the view lags behind the truth.</li>
+<li><code>LagCompensated</code> on everything — each such field costs history memory every tick; mark only what hit checks actually test.</li>
+<li>Predicting damage on other players' entities without <code>AlwaysRollback</code> — predicted writes on non-owned entities are never reset and can stick until the server changes that field again.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="bind-on-change.html">bind-on-change.md</a></li>
+<li><a href="sync-groups.html">sync-groups.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

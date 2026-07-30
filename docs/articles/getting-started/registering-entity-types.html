@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Registering entity types </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Registering entity types ">
+      
+      <meta name="description" content="How to declare the class-id enum, register entity constructors in EntityTypesMap, and reject mismatched builds with the hash handshake.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="registering-entity-types">Registering entity types</h1>
+
+<p><code>EntityTypesMap&lt;T&gt;</code> maps your entity classes to numeric class ids taken from an enum; both server and client build this map at startup, and it is what allows the library to construct the right class when an entity syncs in.</p>
+<h2 id="when-to-use-this">When to use this</h2>
+<ul>
+<li>Once at startup, on both sides, before creating a <code>ServerEntityManager</code> or <code>ClientEntityManager</code> — the manager takes the finished map as its first constructor argument.</li>
+<li>For every class that exists in the synchronized world: entities, pawns, controllers, singletons.</li>
+<li>AI controllers (<code>AiControllerLogic</code> subclasses) may be registered on the server only — they are never synchronized to clients.</li>
+</ul>
+<h2 id="when-not-to">When not to</h2>
+<ul>
+<li>Pure view classes — effects, UI, camera scripts — are not entities and are never registered; they live entirely in engine code.</li>
+<li>Don't branch registration by game mode or scene: class ids must mean the same thing everywhere. Branching by <em>side</em> is allowed only in two supported forms — server-only AI controllers, and server/client subclass variants of a shared base (see below).</li>
+</ul>
+<h2 id="minimal-example">Minimal example</h2>
+<p>Shared code, executed identically by server and client:</p>
+<p><strong>GameTypes.cs</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+
+public enum GameEntities : ushort
+{
+    Player,
+    PlayerController,
+    Projectile
+}
+
+public static class GameTypes
+{
+    public static EntityTypesMap&lt;GameEntities&gt; Build() =&gt;
+        new EntityTypesMap&lt;GameEntities&gt;()
+            .Register(GameEntities.Player, e =&gt; new BasePlayer(e))
+            .Register(GameEntities.PlayerController, e =&gt; new BasePlayerController(e))
+            .Register(GameEntities.Projectile, e =&gt; new SimpleProjectile(e));
+}
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="the-class-id-enum">The class-id enum</h3>
+<p>The enum is the wire contract: each member's numeric value becomes the entity's class id in every packet. Names are irrelevant to the network — values are not. Renaming a member is safe; reordering or inserting members shifts the values of everything after them and breaks compatibility with older builds.</p>
+<h3 id="register-and-the-constructor-delegate">Register and the constructor delegate</h3>
+<p><code>Register</code> ties an enum member to an <code>EntityConstructor&lt;TEntity&gt;</code> — a delegate that receives <code>EntityParams</code> and returns a new instance, typically just <code>e =&gt; new BasePlayer(e)</code>. The library calls it on the server when you spawn the entity and on the client when the entity first arrives in a state update. <code>Register</code> returns the map, so calls chain.</p>
+<h3 id="one-map-two-sides">One map, two sides</h3>
+<p>Pass the finished map to the manager constructor. Registration must be identical on both sides: when the server sends an entity with class id 2, the client must have class id 2 registered as the same kind of entity with the same synchronized fields. The single exception is <code>AiControllerLogic</code> subclasses — they never sync, so the client may skip them (in the example project, the client registers everything except <code>BotController</code>).</p>
+<h3 id="server-and-client-variants-of-a-type">Server and client variants of a type</h3>
+<p>Under the same enum id, each side may construct its own subclass of a shared entity base:</p>
+<p><strong>Registration per side</strong></p>
+<pre><code class="lang-csharp">// shared assembly: class BasePlayer : PawnLogic { /* all SyncVars, RPCs */ }
+// server assembly: class ServerPlayer : BasePlayer { /* server-only logic */ }
+// client assembly: class ClientPlayer : BasePlayer { /* views, effects */ }
+
+// on the server:
+map.Register(GameEntities.Player, e =&gt; new ServerPlayer(e));
+// on the client:
+map.Register(GameEntities.Player, e =&gt; new ClientPlayer(e));
+</code></pre>
+<p>The synchronized layout — every <code>SyncVar</code>, <code>SyncableField</code> and RPC declaration — must stay in the shared base; the side subclasses add only logic. This is the supported way to keep server-only and client-only code in separate assemblies (separate <code>.asmdef</code> in Unity), so a client build ships without server logic and vice versa. Queries work through the base class: <code>GetEntities&lt;BasePlayer&gt;()</code> returns the <code>ServerPlayer</code> or <code>ClientPlayer</code> instances, since filters match entities by their base types as well.</p>
+<h3 id="the-hash-handshake">The hash handshake</h3>
+<p><code>EvaluateEntityClassDataHash()</code> computes a hash over the synchronized layout of every registered type — its <code>SyncVar</code> fields and RPC declarations, in class-id order, with server-only AI controllers excluded. Send it in your join packet and compare on the server; on mismatch, disconnect the client instead of letting two incompatible builds desync mid-game. The example does exactly this with its <code>JoinPacket.GameHash</code>.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p>The map is fixed at manager construction. Spawning a type that was not registered throws an exception immediately (<code>Unregistered entity type</code>). Class ids also size the internal per-type serializers, so the map must be complete before the manager exists.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p>Every incoming entity carries its class id; the client looks up the registered constructor and builds the instance. An unknown or unregistered class id is an error logged through <code>ILogger</code> — with identical maps and the hash handshake in place, it should never happen in production.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Inserting or reordering enum members between releases — every id after the change shifts, and old builds construct wrong classes. Append new members at the end instead.</li>
+<li>Skipping the hash handshake — incompatible builds then fail with confusing per-entity errors and desync instead of one clean rejection at join.</li>
+<li>Registering different sets on client and server (other than AI controllers) — the missing side hits <code>Unregistered entity class</code> as soon as such an entity syncs.</li>
+<li>Declaring a <code>SyncVar</code> or RPC in a server-only or client-only subclass variant — the synchronized layouts diverge and the hash handshake rejects the connection. Synchronized members belong in the shared base.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><p><a href="starting-a-server.html">starting-a-server.md</a></p>
+</li>
+<li><p><a href="starting-a-client.html">starting-a-client.md</a></p>
+</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -7629,6 +7629,19 @@ references:
   isSpec: "True"
   fullName: LiteEntitySystem.PredictableEntityLogic.IsRecreated
   nameWithType: PredictableEntityLogic.IsRecreated
+- uid: LiteEntitySystem.PredictableEntityLogic.OnEntityRecreated(LiteEntitySystem.PredictableEntityLogic)
+  name: OnEntityRecreated(PredictableEntityLogic)
+  href: api/LiteEntitySystem.PredictableEntityLogic.html#LiteEntitySystem_PredictableEntityLogic_OnEntityRecreated_LiteEntitySystem_PredictableEntityLogic_
+  commentId: M:LiteEntitySystem.PredictableEntityLogic.OnEntityRecreated(LiteEntitySystem.PredictableEntityLogic)
+  fullName: LiteEntitySystem.PredictableEntityLogic.OnEntityRecreated(LiteEntitySystem.PredictableEntityLogic)
+  nameWithType: PredictableEntityLogic.OnEntityRecreated(PredictableEntityLogic)
+- uid: LiteEntitySystem.PredictableEntityLogic.OnEntityRecreated*
+  name: OnEntityRecreated
+  href: api/LiteEntitySystem.PredictableEntityLogic.html#LiteEntitySystem_PredictableEntityLogic_OnEntityRecreated_
+  commentId: Overload:LiteEntitySystem.PredictableEntityLogic.OnEntityRecreated
+  isSpec: "True"
+  fullName: LiteEntitySystem.PredictableEntityLogic.OnEntityRecreated
+  nameWithType: PredictableEntityLogic.OnEntityRecreated
 - uid: LiteEntitySystem.PredictableEntityLogic.OnSyncRequested
   name: OnSyncRequested()
   href: api/LiteEntitySystem.PredictableEntityLogic.html#LiteEntitySystem_PredictableEntityLogic_OnSyncRequested

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>FAQ and troubleshooting </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="FAQ and troubleshooting ">
+      
+      <meta name="description" content="Frequent questions and first-hour mistakes, each with the short answer and a link to the page that covers it.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="faq-and-troubleshooting">FAQ and troubleshooting</h1>
+
+<p>Answers to the questions that come up most often, grouped by where they bite. Each points at the page with the full story.</p>
+<h2 id="setup">Setup</h2>
+<p><strong>The client is rejected at join, or entities arrive as the wrong class.</strong>
+Registration differs between builds. Both sides must register the same types under the same enum values; compare <code>EvaluateEntityClassDataHash()</code> in your join packet and refuse mismatches. Enum members must never be reordered between releases — append instead. See <a href="../getting-started/registering-entity-types.html">registering entity types</a>.</p>
+<p><strong><code>SyncVar&lt;Vector2&gt;</code> throws at startup.</strong>
+Engine types are unknown until registered: <code>EntityManager.RegisterFieldType&lt;Vector2&gt;(Vector2.Lerp)</code>, once per process, on both sides, before creating managers. See <a href="../sync/syncvar.html">SyncVar</a>.</p>
+<p><strong>Synchronization silently stops working for one field.</strong>
+Something assigned the wrapper instead of the value (<code>_health = new SyncVar&lt;byte&gt;()</code>) or replaced a syncable field instance. Install the shipped Roslyn analyzer so the first case cannot compile, and declare syncable fields <code>readonly</code>. See <a href="../getting-started/installation.html">installation</a>.</p>
+<p><strong>Nothing is logged when things go wrong.</strong>
+<code>Logger.LoggerImpl</code> is unassigned — registration errors, missing <code>base.RegisterRPC</code> and lag-compensation misses all report through it.</p>
+<h2 id="entities">Entities</h2>
+<p><strong><code>Update()</code> is never called.</strong>
+The class needs <code>[EntityFlags(EntityFlags.Updateable)]</code>. If it should also tick on clients that do not own it, <code>UpdateOnClient</code> — with a guard so those clients skip authoritative logic. See <a href="../world/update-flags.html">update flags</a>.</p>
+<p><strong>Values written on the client get overwritten.</strong>
+That is prediction working: only the server's values persist. Writes on entities you own are predictions; writes on entities you don't own need <code>SyncFlags.AlwaysRollback</code> to be reset properly. See <a href="../netcode/rollback-per-field.html">controlling rollback</a>.</p>
+<p><strong>A field is always default on other clients.</strong>
+It is <code>OnlyForOwner</code>, or its <a href="../sync/sync-groups.html">sync group</a> is disabled for that player — in the first case the data never arrives at all.</p>
+<p><strong>An entity reference points at the wrong entity after a while.</strong>
+Ids are reused. Store <code>EntitySharedReference</code> and resolve with <code>GetEntityById</code>, which checks the version. See <a href="../world/entity-lifecycle.html">entity lifecycle</a>.</p>
+<p><strong><code>Destroy()</code> does nothing on the client.</strong>
+By design — only the server destroys synchronized entities.</p>
+<h2 id="movement-and-visuals">Movement and visuals</h2>
+<p><strong>Remote entities move in steps.</strong>
+Views must read <code>InterpolatedValue</code>, and the field must carry <code>SyncFlags.Interpolated</code>. See <a href="../netcode/interpolation.html">interpolation</a>.</p>
+<p><strong>Rotation spins the long way around.</strong>
+Use <code>FloatAngle</code> instead of a raw float — it interpolates across the 360° boundary.</p>
+<p><strong>The local player rubber-bands.</strong>
+Prediction disagrees with the server: nondeterminism in predicted <code>Update</code> (randomness, wall-clock time, engine frame time, live input polling), or gameplay state changed outside the simulation. See <a href="../netcode/prediction-and-rollback.html">prediction and rollback</a>.</p>
+<p><strong>Effects or sounds play several times.</strong>
+One-shot code inside predicted <code>Update</code> without <code>EntityManager.InNormalState</code> — re-simulation replays it on every correction.</p>
+<h2 id="input-and-shooting">Input and shooting</h2>
+<p><strong>Input is dropped or feels unreliable.</strong>
+Poll in the render frame (<code>VisualUpdate</code> or engine code) and accumulate flags with <code>|=</code>; polling inside <code>Update</code> loses presses between ticks and breaks re-simulation. See <a href="../netcode/input-in-depth.html">input in depth</a>.</p>
+<p><strong>Movement stops entirely.</strong>
+If the pawn relies on <code>BeforeControlledUpdate</code>, its <code>Update()</code> override must call <code>base.Update()</code> first.</p>
+<p><strong>Shots miss what the player clearly aimed at.</strong>
+Test fields need <code>SyncFlags.LagCompensated</code>, the check must run inside input processing, and physics colliders must be moved to the rewound values in <code>OnLagCompensationStart</code>. See <a href="../netcode/lag-compensation-in-depth.html">lag compensation</a>.</p>
+<h2 id="architecture">Architecture</h2>
+<p><strong>How do I send something from client to server?</strong>
+The input struct for continuous intent, <code>SendRequest</code>/<code>SendRequestStruct</code> for occasional actions. There are no client-to-server RPCs. See <a href="../sync/client-requests.html">client requests</a>.</p>
+<p><strong>How do I keep server-only code out of the client build?</strong>
+Register a server subclass and a client subclass of a shared base under the same class id, in separate assemblies. See <a href="../getting-started/registering-entity-types.html">registering entity types</a>.</p>
+<p><strong>How do I handle reconnects without losing the player's character?</strong>
+<code>StopControl()</code> before <code>RemovePlayer</code> so the pawn survives, then create a new controller on reconnect and <code>StartControl</code> the old pawn. Keep persistent state on the pawn, never on the controller. See <a href="../world/controllers-in-depth.html">controllers in depth</a>.</p>
+<p><strong>Can I run server and client in one process?</strong>
+Yes — the standard listen-server pattern, with the local client connecting over localhost. See <a href="hosting.html">hosting</a>.</p>
+<p><strong>How do I transfer a large file?</strong>
+Not through the entity system: use your own channel on the same <a href="transport.html">transport</a>, where you can show progress and throttle.</p>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="../netcode/diagnostics.html">../netcode/diagnostics.md</a></li>
+<li><a href="limits.html">limits.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

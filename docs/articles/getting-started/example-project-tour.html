@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Example project tour </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Example project tour ">
+      
+      <meta name="description" content="A map of the Unity example project - how to run it as host or dedicated server, and which script demonstrates which concept.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="example-project-tour">Example project tour</h1>
+
+<p>The <a href="https://github.com/RevenantX/LiteEntitySystemUnityExample">Unity example project</a> is a small top-down 2D shooter — players and bots, a hitscan weapon, predicted projectiles — and every page of this documentation points into it; this page is the map.</p>
+<h2 id="running-it">Running it</h2>
+<p>Open the project in Unity 2021.2+ and play the <code>Main</code> scene. The UI offers two buttons:</p>
+<ul>
+<li><strong>Host</strong> — loads the <code>Server</code> scene additively and connects the local client to <code>localhost</code>. This is the listen-server pattern: both managers run in one process, the client talks to its own server over the loopback.</li>
+<li><strong>Connect</strong> — joins a server at the IP in the text field, so a second editor or build can join the host.</li>
+</ul>
+<p>For a dedicated server, build with the dedicated-server target: under <code>UNITY_SERVER</code> the example caps <code>Application.targetFrameRate</code> to the game's tick rate and runs the <code>Server</code> scene logic headless.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Both <code>ServerLogic</code> and <code>ClientLogic</code> enable LiteNetLib's latency simulation (~50-60 ms) — the demo is laggy on purpose. That is what makes prediction, interpolation and lag compensation visible: disable <code>SimulateLatency</code> to compare.</p>
+</div>
+<h2 id="the-scenes">The scenes</h2>
+<p><code>Main</code> holds the client: <code>ClientObject</code> (<code>ClientLogic</code>), the UI (<code>UiController</code>), camera and HUD. <code>Server</code> holds a single <code>ServerObject</code> (<code>ServerLogic</code>). The server scene is loaded additively with <code>LocalPhysicsMode.Physics2D</code>, giving each scene its own 2D physics world — which is exactly why physics is wrapped in the <code>UnityPhysicsManager</code> singleton entity that calls <code>Simulate()</code> manually every logic tick instead of letting Unity auto-step it.</p>
+<h2 id="script-map">Script map</h2>
+<h3 id="shared-both-sides">Shared (both sides)</h3>
+<table>
+<thead>
+<tr>
+<th>Script</th>
+<th>What it demonstrates</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NetworkGeneral.cs</code></td>
+<td>The class-id enum (<code>GameEntities</code>) and the tick rate constant — <a href="registering-entity-types.html">registering-entity-types.md</a>.</td>
+</tr>
+<tr>
+<td><code>GamePackets.cs</code></td>
+<td>Header-byte routing (<code>PacketType</code>), the join packet with the type-map hash, the input struct with <code>MovementKeys</code> flags.</td>
+</tr>
+<tr>
+<td><code>BasePlayer.cs</code></td>
+<td>The pawn: interpolated + lag-compensated position, <code>AlwaysRollback</code> health, <code>SyncString</code> name, <code>SyncTimer</code> cooldown, two RPCs, sync-group reactions, predicted projectile spawn. The densest file in the project.</td>
+</tr>
+<tr>
+<td><code>BasePlayerController.cs</code></td>
+<td><code>HumanControllerLogic&lt;TInput, T&gt;</code>: input polling in <code>VisualUpdate</code>, applying it in <code>BeforeControlledUpdate</code>, plus distance-based <code>ToggleSyncGroup</code> culling on the server — <a href="adding-a-player.html">adding-a-player.md</a>.</td>
+</tr>
+<tr>
+<td><code>SimpleProjectile.cs</code></td>
+<td><code>PredictableEntityLogic</code>: client-side spawn prediction, per-tick raycast under lag compensation, <code>UpdateOnClient</code> for <code>VisualUpdate</code> on remote clients.</td>
+</tr>
+<tr>
+<td><code>UnityPhysicsManager.cs</code></td>
+<td>A <code>SingletonEntityLogic</code> owning the per-scene physics world.</td>
+</tr>
+<tr>
+<td><code>WeaponItem.cs</code>, <code>GameWeapon.cs</code></td>
+<td>Minimal entity stubs — the smallest registrable entities.</td>
+</tr>
+<tr>
+<td><code>PlayerProxy.cs</code></td>
+<td>The view-side MonoBehaviour reading <code>InterpolatedValue</code> every frame — <a href="first-synced-entity.html">first-synced-entity.md</a>.</td>
+</tr>
+<tr>
+<td><code>GamePool.cs</code>, <code>Extensions.cs</code>, <code>UnityLogger.cs</code></td>
+<td>Non-entity support code: effect pooling, LiteNetLib serialization helpers, the <code>ILogger</code> implementation from <a href="installation.html">installation.md</a>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="server">Server</h3>
+<table>
+<thead>
+<tr>
+<th>Script</th>
+<th>What it demonstrates</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ServerLogic.cs</code></td>
+<td>Everything from <a href="starting-a-server.html">starting-a-server.md</a> in production form: manager creation, join flow with hash verification, packet routing — plus 255 AI bots spawned at startup.</td>
+</tr>
+<tr>
+<td><code>ServerBotController.cs</code></td>
+<td><code>AiControllerLogic&lt;BasePlayer&gt;</code>: a bot drives the same pawn through the same <code>SetInput</code> path as human players, registered on the server only.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="client">Client</h3>
+<table>
+<thead>
+<tr>
+<th>Script</th>
+<th>What it demonstrates</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ClientLogic.cs</code></td>
+<td>Everything from <a href="starting-a-client.html">starting-a-client.md</a>: manager per connection, <code>SubscribeToConstructed</code> view wiring, plus a debug overlay of tick/buffer/jitter diagnostics worth reading while tuning.</td>
+</tr>
+<tr>
+<td><code>UiController.cs</code></td>
+<td>The Host/Connect flow, including the additive server-scene load for listen-server mode.</td>
+</tr>
+<tr>
+<td><code>ClientPlayerView.cs</code>, <code>RemotePlayerView.cs</code></td>
+<td>Local vs remote player views: camera follow for the owner, a health label for others.</td>
+</tr>
+<tr>
+<td><code>ShootEffect.cs</code>, <code>HitEffect.cs</code></td>
+<td>Pooled visual effects triggered from entity RPC handlers — views, not entities.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="where-to-go-next">Where to go next</h2>
+<p>Section 1 ends here — you have a moving, shooting, predicted player and a map of working reference code. The following sections go deeper into each subsystem, in the same order you met them: world structure, synchronization, then the netcode core.</p>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><p><a href="adding-a-player.html">adding-a-player.md</a></p>
+</li>
+<li><p><a href="lag-compensation.html">lag-compensation.md</a></p>
+</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

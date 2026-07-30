@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Interpolation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Interpolation ">
+      
+      <meta name="description" content="Smoothing rendered values - what InterpolatedValue blends between for owned and remote entities, and registering lerp functions for custom types.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="interpolation">Interpolation</h1>
+
+<p>State arrives in discrete snapshots, but rendering happens every frame — <code>SyncFlags.Interpolated</code> keeps a second, smoothed copy of a field so views can move continuously between the values the simulation produced.</p>
+<h2 id="using-it">Using it</h2>
+<p>Mark the field, read <code>InterpolatedValue</code> from view code:</p>
+<p><strong>Drone.cs</strong></p>
+<pre><code class="lang-csharp">[SyncVarFlags(SyncFlags.Interpolated)]
+public SyncVar&lt;float&gt; Altitude;
+</code></pre>
+<pre><code class="lang-csharp">// per-frame view code (engine Update or VisualUpdate)
+mesh.position = new Vector3(0f, drone.Altitude.InterpolatedValue, 0f);
+</code></pre>
+<p>Logic keeps reading <code>.Value</code> — the authoritative number for this tick. The two are different by design: <code>.Value</code> is where the simulation is, <code>InterpolatedValue</code> is what the player should see right now.</p>
+<h2 id="what-it-blends-between">What it blends between</h2>
+<p>The answer differs by ownership, because the two cases have different sources of truth:</p>
+<table>
+<thead>
+<tr>
+<th>Entity</th>
+<th>Blends between</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Locally controlled (predicted)</td>
+<td>the value before the last logic tick and the current one</td>
+<td>smooths the client's own simulation across render frames</td>
+</tr>
+<tr>
+<td>Remote</td>
+<td>the two most recent server states</td>
+<td>renders slightly behind the server, hiding jitter and send-rate gaps</td>
+</tr>
+</tbody>
+</table>
+<p>So one screen shows two timelines at once: your own entities interpolated across their predicted ticks, everyone else's interpolated between snapshots that are a fraction of a second old. That difference is exactly what <a href="lag-compensation-in-depth.html">lag compensation</a> reconciles when you shoot.</p>
+<p>The blend factors are exposed for special cases: <code>LerpFactor</code> reports how far the current frame sits between two logic ticks, and <code>VisualDeltaTimeF</code> gives the render-frame delta.</p>
+<h2 id="custom-types">Custom types</h2>
+<p>Interpolation needs to know how to blend a type. Primitives are built in, and so is <code>FloatAngle</code>, which wraps correctly across 360° — use it for rotations instead of a raw float, which would spin the long way around from 359 to 1.</p>
+<p>Engine vectors are registered by your code once per process, on both sides, before any manager exists:</p>
+<pre><code class="lang-csharp">EntityManager.RegisterFieldType&lt;Vector2&gt;(Vector2.Lerp);
+EntityManager.RegisterFieldType&lt;Vector3&gt;(Vector3.Lerp);
+</code></pre>
+<p>Any <code>unmanaged</code> type works with a matching <code>(prev, current, t) =&gt; value</code> function. Registering without one is valid too — the type then synchronizes normally but cannot be marked <code>Interpolated</code>.</p>
+<h2 id="which-fields-deserve-it">Which fields deserve it</h2>
+<p>Interpolation costs a second copy of the value on the client and a lerp per read, and it only makes sense for quantities that move continuously: position, rotation, a turret angle, a smoothly draining bar. Discrete values — health, ammo, a state enum, a boolean — should snap; a midpoint between 100 and 75 health is a number the game never had.</p>
+<p>For remote entities there is a subtler consequence: interpolated fields show a slightly delayed truth. Never use them for logic decisions; logic reads <code>.Value</code> on the server, and on the client only for entities it predicts.</p>
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Views reading <code>.Value</code> — motion steps at the send rate instead of flowing; that is the single most common &quot;why is it choppy&quot;.</li>
+<li>Marking discrete values <code>Interpolated</code> — the view displays values that never existed.</li>
+<li>A raw float for angles — interpolating 359 → 1 sweeps backwards through the whole circle; use <code>FloatAngle</code>.</li>
+<li>Forgetting <code>RegisterFieldType</code> on one side — the sides disagree about the field's layout and the connection fails at startup rather than subtly.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="lag-compensation-in-depth.html">lag-compensation-in-depth.md</a></li>
+<li><a href="../sync/sync-flags.html">../sync/sync-flags.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

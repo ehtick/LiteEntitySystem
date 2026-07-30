@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Limits and constants </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Limits and constants ">
+      
+      <meta name="description" content="The built-in ceilings - entity and player counts, buffers and payload sizes - and what happens when a game approaches them.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="limits-and-constants">Limits and constants</h1>
+
+<p>The library has fixed ceilings that come from the wire format: ids are 16 bits, player ids 8, payload sizes 16. This page lists them so you can size your game against them.</p>
+<div class="CAUTION">
+<h5>Caution</h5>
+<p>Treat these numbers as boundaries to stay away from, not as budgets to fill. Behavior at the edge is not uniformly graceful — some limits are reported clearly, others degrade or fail in ways that are hard to diagnose. A design that runs at 90% of any of them is a design that will break in production.</p>
+</div>
+<h2 id="the-ceilings">The ceilings</h2>
+<table>
+<thead>
+<tr>
+<th>Limit</th>
+<th>Value</th>
+<th>What it bounds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MaxSyncedEntityCount</code></td>
+<td>64000</td>
+<td>Synchronized entities alive at once, server-wide</td>
+</tr>
+<tr>
+<td><code>MaxEntityCount</code></td>
+<td>65534</td>
+<td>Total id space; the range above the synced count is for client-local predicted entities</td>
+</tr>
+<tr>
+<td><code>MaxLocalEntityCount</code></td>
+<td>~1534</td>
+<td>Client-local predicted entities alive at once</td>
+</tr>
+<tr>
+<td><code>MaxPlayers</code></td>
+<td>254</td>
+<td>Simultaneous players (id 0 is the server, ids 1-254 are players)</td>
+</tr>
+<tr>
+<td><code>MaxStoredInputs</code></td>
+<td>30</td>
+<td>Inputs the server buffers per player</td>
+</tr>
+<tr>
+<td><code>InputBufferSize</code></td>
+<td>64</td>
+<td>Unconfirmed inputs the client keeps for rollback</td>
+</tr>
+<tr>
+<td><code>MaxHistorySize</code></td>
+<td>16 / 32 / 64 / 128 ticks</td>
+<td>Lag-compensation history depth (constructor parameter)</td>
+</tr>
+<tr>
+<td>RPC payload</td>
+<td>64 KB</td>
+<td>Bytes in a single RPC's payload</td>
+</tr>
+<tr>
+<td><code>StringSizeLimit</code></td>
+<td>1024</td>
+<td>Bytes in a string inside a client request</td>
+</tr>
+</tbody>
+</table>
+<p><code>MaxHistorySize</code> is the only one you choose; the rest are properties of the format.</p>
+<h2 id="what-running-close-to-a-limit-looks-like">What running close to a limit looks like</h2>
+<p><strong>Entities.</strong> The practical constraint is bandwidth long before 64000: every synchronized entity contributes to state size, and clients receive a full baseline of everything they can see when they join. If entity counts are the concern, <a href="../sync/sync-groups.html">sync groups</a> reduce what each player receives; culling never reduces the server-side count.</p>
+<p><strong>Players.</strong> 254 is the id space, not a performance figure. State is composed per player, so the cost of a player is the size of their view of the world — a shooter and a hundred-player battle royale have very different real ceilings on the same hardware.</p>
+<p><strong>Inputs.</strong> The server's per-player buffer is deliberately shallow: it exists to absorb jitter, not to store history. A client whose clock has drifted far enough to overrun it is a client that will be corrected by the <a href="../netcode/adaptive-timing.html">adaptive timing</a> machinery — that is the mechanism working, not a limit to raise.</p>
+<p><strong>Payloads.</strong> The 64 KB RPC ceiling is far above what a single call should carry. Anything approaching it belongs in a <a href="../sync/syncablefield-basics.html">syncable field</a> that synchronizes incrementally, or should be split into several calls; a payload larger than the connection's packet size is split across packets and delays everything queued behind it.</p>
+<p>For genuinely large transfers — a level file, a downloadable map, a replay blob — do not use the entity system at all. Send them on your own channel through the <a href="transport.html">transport</a>, sharing the connection via the header byte: LiteNetLib (or whatever transport you use) can stream them with its own chunking, and you keep what the entity system cannot give you — a progress figure to show a loading bar, cancellation, and the freedom to throttle the transfer so it does not compete with gameplay traffic. The entity stream is for game state; bulk content belongs beside it.</p>
+<h2 id="designing-away-from-the-edges">Designing away from the edges</h2>
+<ul>
+<li>Destroy what is no longer needed — entities count against the ceiling until they are actually removed, which happens after all clients have acknowledged the destruction.</li>
+<li>Prefer a few rich entities over many trivial ones: each has fixed per-entity overhead in every state that mentions it.</li>
+<li>Keep predicted local entities short-lived; the local id space is much smaller than the synced one.</li>
+<li>Measure with the <a href="../netcode/diagnostics.html">diagnostics</a> values (<code>EntitiesCount</code>, <code>StateSize</code>) rather than reasoning from the table above — the number that actually hurts is bytes per second per player, and it is reachable well below every limit here.</li>
+</ul>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="faq.html">faq.md</a></li>
+<li><a href="../netcode/diagnostics.html">../netcode/diagnostics.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

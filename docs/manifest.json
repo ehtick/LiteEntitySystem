@@ -1455,20 +1455,90 @@
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "articles/client-update-flow.md",
+      "source_relative_path": "articles/getting-started/adding-a-player.md",
       "output": {
         ".html": {
-          "relative_path": "articles/client-update-flow.html"
+          "relative_path": "articles/getting-started/adding-a-player.html"
         }
       },
       "version": ""
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "articles/entity-creation.md",
+      "source_relative_path": "articles/getting-started/core-model.md",
       "output": {
         ".html": {
-          "relative_path": "articles/entity-creation.html"
+          "relative_path": "articles/getting-started/core-model.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/getting-started/example-project-tour.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/getting-started/example-project-tour.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/getting-started/first-synced-entity.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/getting-started/first-synced-entity.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/getting-started/installation.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/getting-started/installation.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/getting-started/lag-compensation.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/getting-started/lag-compensation.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/getting-started/registering-entity-types.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/getting-started/registering-entity-types.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/getting-started/starting-a-client.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/getting-started/starting-a-client.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/getting-started/starting-a-server.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/getting-started/starting-a-server.html"
         }
       },
       "version": ""
@@ -1485,20 +1555,270 @@
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "articles/lag-compensation.md",
+      "source_relative_path": "articles/integration/faq.md",
       "output": {
         ".html": {
-          "relative_path": "articles/lag-compensation.html"
+          "relative_path": "articles/integration/faq.html"
         }
       },
       "version": ""
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "articles/server-update-flow.md",
+      "source_relative_path": "articles/integration/hosting.md",
       "output": {
         ".html": {
-          "relative_path": "articles/server-update-flow.html"
+          "relative_path": "articles/integration/hosting.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/integration/limits.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/integration/limits.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/integration/local-message-bus.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/integration/local-message-bus.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/integration/transport.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/integration/transport.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/netcode/adaptive-timing.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/netcode/adaptive-timing.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/netcode/diagnostics.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/netcode/diagnostics.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/netcode/input-in-depth.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/netcode/input-in-depth.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/netcode/interpolation.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/netcode/interpolation.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/netcode/lag-compensation-in-depth.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/netcode/lag-compensation-in-depth.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/netcode/predicted-spawning.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/netcode/predicted-spawning.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/netcode/prediction-and-rollback.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/netcode/prediction-and-rollback.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/netcode/rollback-per-field.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/netcode/rollback-per-field.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/netcode/server-update-flow.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/netcode/server-update-flow.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/netcode/tick-model.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/netcode/tick-model.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/netcode/update-vs-visualupdate.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/netcode/update-vs-visualupdate.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/sync/bind-on-change.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/sync/bind-on-change.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/sync/built-in-syncable-fields.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/sync/built-in-syncable-fields.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/sync/client-requests.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/sync/client-requests.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/sync/custom-syncablefield.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/sync/custom-syncablefield.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/sync/how-state-syncs.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/sync/how-state-syncs.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/sync/rpc-basics.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/sync/rpc-basics.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/sync/rpc-payloads.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/sync/rpc-payloads.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/sync/sync-flags.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/sync/sync-flags.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/sync/sync-groups.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/sync/sync-groups.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/sync/syncablefield-basics.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/sync/syncablefield-basics.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/sync/syncvar.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/sync/syncvar.html"
         }
       },
       "version": ""
@@ -1512,6 +1832,106 @@
         },
         ".json": {
           "relative_path": "articles/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/world/ai-controllers.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/world/ai-controllers.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/world/controllers-in-depth.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/world/controllers-in-depth.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/world/entity-hierarchy.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/world/entity-hierarchy.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/world/entity-lifecycle.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/world/entity-lifecycle.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/world/finding-entities.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/world/finding-entities.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/world/ownership-and-players.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/world/ownership-and-players.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/world/parent-child.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/world/parent-child.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/world/singletons.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/world/singletons.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/world/unity-views.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/world/unity-views.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/world/update-flags.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/world/update-flags.html"
         }
       },
       "version": ""

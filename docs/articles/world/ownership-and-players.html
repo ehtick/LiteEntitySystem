@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Ownership and players </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Ownership and players ">
+      
+      <meta name="description" content="Player ids, NetPlayer, the three ownership checks, how entities acquire and inherit owners, and everything ownership controls.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="ownership-and-players">Ownership and players</h1>
+
+<p>Every entity carries an <code>OwnerId</code> — the byte id of the player it belongs to, or <code>0</code> for the server — and that single byte decides who predicts the entity, who receives which fields, and whose perspective lag compensation uses.</p>
+<h2 id="players">Players</h2>
+<p>On the server, each connection accepted through <code>AddPlayer</code> becomes a <code>NetPlayer</code> with an id from 1 to 254; id <code>0</code> (<code>EntityManager.ServerPlayerId</code>) is reserved for the server itself. The client learns its own id with the baseline — <code>PlayerId</code> on the manager — and exposes its <code>NetPlayer</code> as <code>LocalPlayer</code>. Server code can look up any player by owner id via <code>GetPlayer(entity.OwnerId)</code>.</p>
+<h2 id="the-three-checks">The three checks</h2>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>True when</th>
+<th>Typical use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>IsServerControlled</code></td>
+<td><code>OwnerId == 0</code></td>
+<td>World objects, singletons — nobody's, everybody sees them the same</td>
+</tr>
+<tr>
+<td><code>IsLocalControlled</code></td>
+<td><code>OwnerId</code> equals this manager's player id</td>
+<td>Prediction-side logic, owner-only feedback</td>
+</tr>
+<tr>
+<td><code>IsRemoteControlled</code></td>
+<td>Anything else</td>
+<td>Entities this side only observes, interpolated</td>
+</tr>
+</tbody>
+</table>
+<p>One asymmetry worth internalizing: the server's own player id is <code>0</code>, so on the server every server-owned entity reports <code>IsLocalControlled == true</code>. The checks describe &quot;mine / not mine&quot; relative to whichever manager is asking, not &quot;server / client&quot;.</p>
+<h2 id="minimal-example">Minimal example</h2>
+<p>A bomb inherits its planter's ownership, so the planter's client predicts it:</p>
+<p><strong>Bomb.cs</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+
+[EntityFlags(EntityFlags.Updateable)]
+public class Bomb : EntityLogic
+{
+    public SyncVar&lt;float&gt; Timer;
+
+    public Bomb(EntityParams entityParams) : base(entityParams) { }
+
+    protected override void Update()
+    {
+        Timer.Value -= EntityManager.DeltaTimeF;
+        if (IsServer &amp;&amp; Timer.Value &lt;= 0f)
+            Destroy();
+    }
+
+    protected override void OnConstructed()
+    {
+        if (IsClient)
+        {
+            // IsLocalControlled → this client planted it: friendly outline, own ticking sound
+            // IsRemoteControlled → someone else's bomb: hostile view
+        }
+    }
+}
+</code></pre>
+<p><strong>On the server</strong></p>
+<pre><code class="lang-csharp">// server-owned: OwnerId == 0, nobody predicts it
+var crystal = manager.AddEntity&lt;ScoreCrystal&gt;();
+
+// owned by the planter: passes the parent's owner down
+var bomb = manager.AddEntity&lt;Bomb&gt;(planterPawn, b =&gt; b.Timer.Value = 3f);
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="how-entities-acquire-an-owner">How entities acquire an owner</h3>
+<p>Game code never assigns <code>OwnerId</code> directly — there is no public setter. Ownership always flows in from structure:</p>
+<ul>
+<li>A plain <code>AddEntity&lt;T&gt;()</code> produces a server-owned entity.</li>
+<li><code>AddController&lt;T&gt;(player, …)</code> creates a controller owned by that player, and possession passes the owner on to the pawn.</li>
+<li><code>AddEntity&lt;T&gt;(parent, …)</code> and <code>AddPredictedEntity&lt;T&gt;</code> inherit the parent's owner.</li>
+<li><code>SetParent</code> re-propagates the new parent's owner down the whole child subtree.</li>
+</ul>
+<p>The consequence: ownership is a property of <em>where an entity hangs in the possession and parent structure</em>, and it changes when that structure changes — a pawn released by its controller reverts to server ownership, and every child follows.</p>
+<h3 id="what-ownership-drives">What ownership drives</h3>
+<p>Prediction: a client simulates only entities it owns; everything else is interpolated. RPC routing: <code>ExecuteFlags.SendToOwner</code> / <code>SendToOther</code> split on this byte. Field visibility: <code>SyncFlags.OnlyForOwner</code> / <code>OnlyForOtherPlayers</code> filter per-field, and <code>EntityFlags.OnlyForOwner</code> hides whole entities (this is how controllers stay private). Lag compensation rewinds <em>other</em> players' entities relative to an owner — the owner is never rewound for their own shot. And on the client, owned <code>Updateable</code> entities are the ones that run <code>Update()</code> locally.</p>
+<h3 id="ownership-changes-at-runtime">Ownership changes at runtime</h3>
+<p>Possession and reparenting rewrite <code>OwnerId</code> on the fly, and the client reacts automatically: an entity that becomes locally controlled starts predicting, one that stops being owned drops back to interpolation. React to these transitions in the hooks that cause them — <code>OnControlledEntityChanged</code> on controllers, <code>OnParentChanged</code> on entities — rather than polling the checks.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p>The server updates every entity regardless of owner; <code>OwnerId</code> matters for packet composition — which player receives which fields and RPCs — and as the key for <code>GetPlayer</code> when kicking, inspecting input state, or enabling lag compensation for a shooter.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p><code>IsLocalControlled</code> partitions the world: owned entities tick locally as predictions, remote ones replay server states through interpolation. When ownership flips mid-game, the entity migrates between the two regimes without any game-code involvement.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>Rollback re-simulates only locally controlled entities. Fields of remote entities stay untouched unless explicitly marked <code>SyncFlags.AlwaysRollback</code> — the mechanism from the <a href="../index.html">introduction's door example</a>, covered fully in the prediction section.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Caching <code>IsLocalControlled</code> at construction — possession and reparenting change ownership at runtime, and the cached flag silently goes stale; check it where you use it, or react in <code>OnControlledEntityChanged</code>/<code>OnParentChanged</code>.</li>
+<li>Using <code>IsClient</code> where you mean <code>IsLocalControlled</code> — an <code>IsClient</code> gate runs for <em>every</em> client, so &quot;my&quot; feedback (sounds, UI) plays for spectators of other players too.</li>
+<li>Treating the server's <code>IsLocalControlled == true</code> as a client indicator — on the server it merely means server-owned; combine with <code>IsServer</code>/<code>IsClient</code> when the side matters.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="controllers-in-depth.html">controllers-in-depth.md</a></li>
+<li><a href="entity-hierarchy.html">entity-hierarchy.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

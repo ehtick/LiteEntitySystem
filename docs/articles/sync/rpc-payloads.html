@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>RPC payloads </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="RPC payloads ">
+      
+      <meta name="description" content="The four RPC payload forms - no argument, unmanaged struct, span of values, and ISpanSerializable for variable-length data.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="rpc-payloads">RPC payloads</h1>
+
+<p>An RPC carries either nothing, one unmanaged value, a span of unmanaged values, or a custom-serialized payload — one handle type per case, with the same registration and firing API.</p>
+<h2 id="the-four-forms">The four forms</h2>
+<table>
+<thead>
+<tr>
+<th>Handle</th>
+<th>Payload</th>
+<th>Use for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RemoteCall</code></td>
+<td>none</td>
+<td>Pure signals: &quot;reload finished&quot;, &quot;start the effect&quot;</td>
+</tr>
+<tr>
+<td><code>RemoteCall&lt;T&gt;</code></td>
+<td>one <code>unmanaged</code> value</td>
+<td>Fixed data: a struct of positions, a damage amount</td>
+</tr>
+<tr>
+<td><code>RemoteCallSpan&lt;T&gt;</code></td>
+<td><code>ReadOnlySpan&lt;T&gt;</code> of unmanaged values</td>
+<td>Variable-count uniform data: hit points, a path</td>
+</tr>
+<tr>
+<td><code>RemoteCallSerializable&lt;T&gt;</code></td>
+<td><code>T : ISpanSerializable</code></td>
+<td>Anything else: strings, mixed or optional fields</td>
+</tr>
+</tbody>
+</table>
+<h2 id="minimal-example">Minimal example</h2>
+<p><strong>Announcer.cs</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+
+public struct DamageInfo
+{
+    public ushort Amount;
+    public byte HitZone;
+}
+
+public struct KillMessage : ISpanSerializable
+{
+    public string Killer;
+    public string Victim;
+
+    public int MaxSize =&gt;
+        SpanWriter.GetMaxStringSize(Killer) + SpanWriter.GetMaxStringSize(Victim);
+
+    public void Serialize(ref SpanWriter writer)
+    {
+        writer.Put(Killer);
+        writer.Put(Victim);
+    }
+
+    public void Deserialize(ref SpanReader reader)
+    {
+        reader.Get(out Killer);
+        reader.Get(out Victim);
+    }
+}
+
+public class Announcer : EntityLogic
+{
+    private static RemoteCall&lt;DamageInfo&gt; _damageRpc;
+    private static RemoteCallSpan&lt;int&gt; _comboRpc;
+    private static RemoteCallSerializable&lt;KillMessage&gt; _killRpc;
+
+    public Announcer(EntityParams entityParams) : base(entityParams) { }
+
+    protected override void RegisterRPC(ref RPCRegistrator r)
+    {
+        base.RegisterRPC(ref r);
+        r.CreateRPCAction(this, OnDamage, ref _damageRpc, ExecuteFlags.SendToOwner);
+        r.CreateRPCAction(this, OnCombo, ref _comboRpc, ExecuteFlags.SendToAll);
+        r.CreateRPCAction(this, OnKill, ref _killRpc, ExecuteFlags.SendToAll);
+    }
+
+    // server side
+    public void ReportDamage(ushort amount, byte zone) =&gt;
+        ExecuteRPC(_damageRpc, new DamageInfo { Amount = amount, HitZone = zone });
+
+    public void ReportCombo(ReadOnlySpan&lt;int&gt; scores) =&gt; ExecuteRPC(_comboRpc, scores);
+
+    public void ReportKill(string killer, string victim) =&gt;
+        ExecuteRPC(_killRpc, new KillMessage { Killer = killer, Victim = victim });
+
+    private void OnDamage(DamageInfo info) { /* owner's HUD */ }
+    private void OnCombo(ReadOnlySpan&lt;int&gt; scores) { /* the span is valid only here */ }
+    private void OnKill(KillMessage message) { /* kill feed */ }
+}
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="unmanaged-payloads">Unmanaged payloads</h3>
+<p><code>RemoteCall&lt;T&gt;</code> copies the value's bytes as-is, so <code>T</code> must be <code>unmanaged</code>: primitives, enums, or structs built from them. Group related arguments into a small struct rather than firing several RPCs — one call is one ordered message, several are several. Keep it compact; every byte ships to every recipient.</p>
+<h3 id="span-payloads">Span payloads</h3>
+<p><code>RemoteCallSpan&lt;T&gt;</code> sends a variable number of unmanaged elements. The handler receives a <code>ReadOnlySpan&lt;T&gt;</code> that is valid <strong>only for the duration of the call</strong> — it points into the receive buffer. Copy what you need to keep (<code>ToArray()</code>, or into your own list) before returning.</p>
+<h3 id="serializable-payloads">Serializable payloads</h3>
+<p><code>ISpanSerializable</code> covers everything the other forms cannot: strings, optional fields, variable structure. Implement three members — <code>MaxSize</code> (upper bound in bytes, used to size a stack buffer), <code>Serialize(ref SpanWriter)</code> and <code>Deserialize(ref SpanReader)</code>. <code>SpanWriter.Put</code> and <code>SpanReader.Get</code> cover the primitives, strings and <code>Guid</code>; write and read in the same order.</p>
+<p><code>MaxSize</code> must be a genuine upper bound for the payload you actually send — it sizes the buffer the writer gets, and an underestimate overflows it. Fixed-size fields contribute their <code>sizeof</code>; for strings use the static helpers <code>SpanWriter.GetMaxStringSize(str)</code> (and <code>GetMaxLargeStringSize</code> for strings written with the large-string overload), which account for the length prefix and the encoded byte count of that exact string.</p>
+<h3 id="size-limits">Size limits</h3>
+<p>A single RPC's payload is bounded by what fits in the packet stream — up to 64 KB per call, but a payload larger than the connection's packet size gets split across packets, delaying delivery of everything behind it. Treat RPCs as small messages: for anything large or continuous, a <code>SyncableField</code> such as <a href="built-in-syncable-fields.html"><code>SyncList&lt;T&gt;</code></a> synchronizes incrementally instead.</p>
+<p>Megabyte-scale transfers — level files, downloadable content, replays — do not belong in the entity stream at all. Send them on your own channel through the <a href="../integration/transport.html">transport</a>, which lets you show real download progress, cancel, and throttle so the transfer does not crowd out gameplay traffic.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p>Payload bytes are copied when <code>ExecuteRPC</code> is called, so the source value or span may be reused immediately afterwards. Serializable payloads are written into a stack buffer of <code>MaxSize</code> bytes at that moment.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p>Payloads are decoded in stream order with state. Value and serializable payloads are handed over as owned copies; span payloads point into the receive buffer and must be copied to outlive the handler.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>Payload handling is identical during predicted execution (<code>ExecuteOnPrediction</code>) — the value goes straight to the handler locally. Re-simulation does not replay RPCs, so payload handlers run once per call.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Storing the <code>ReadOnlySpan&lt;T&gt;</code> from a span RPC — it is only valid inside the handler; copy the data out.</li>
+<li><code>MaxSize</code> smaller than what <code>Serialize</code> writes — the stack buffer overflows; add up <code>sizeof</code> for fixed fields and <code>SpanWriter.GetMaxStringSize</code> for each string instead of guessing.</li>
+<li>Serializing and deserializing in different orders — the payload decodes into garbage with no error.</li>
+<li>Sending bulk data through RPCs — large payloads fragment across packets and stall the stream behind them; use a syncable collection for continuous data.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="client-requests.html">client-requests.md</a></li>
+<li><a href="syncablefield-basics.html">syncablefield-basics.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

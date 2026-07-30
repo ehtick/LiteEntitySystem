@@ -607,6 +607,7 @@
   "LiteEntitySystem.PredictableEntityLogic": "LiteEntitySystem.PredictableEntityLogic.yml",
   "LiteEntitySystem.PredictableEntityLogic.#ctor(LiteEntitySystem.EntityParams)": "LiteEntitySystem.PredictableEntityLogic.yml",
   "LiteEntitySystem.PredictableEntityLogic.IsRecreated": "LiteEntitySystem.PredictableEntityLogic.yml",
+  "LiteEntitySystem.PredictableEntityLogic.OnEntityRecreated(LiteEntitySystem.PredictableEntityLogic)": "LiteEntitySystem.PredictableEntityLogic.yml",
   "LiteEntitySystem.PredictableEntityLogic.OnSyncRequested": "LiteEntitySystem.PredictableEntityLogic.yml",
   "LiteEntitySystem.PredictableEntityLogic.RegisterRPC(LiteEntitySystem.RPCRegistrator@)": "LiteEntitySystem.PredictableEntityLogic.yml",
   "LiteEntitySystem.RPCRegistrator": "LiteEntitySystem.RPCRegistrator.yml",

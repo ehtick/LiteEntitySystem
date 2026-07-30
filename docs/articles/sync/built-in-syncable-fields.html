@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Built-in syncable fields </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Built-in syncable fields ">
+      
+      <meta name="description" content="The ready-made SyncableField types shipped with the library - what each is for and which ones take part in rollback.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="built-in-syncable-fields">Built-in syncable fields</h1>
+
+<p>The <code>LiteEntitySystem.Extensions</code> namespace ships syncable types for the common cases, so most entities never need a custom one. This page is a map; the API reference has the exact members of each type.</p>
+<h2 id="what-is-available">What is available</h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SyncString</code></td>
+<td>Text, with a <code>ValueChanged</code> event</td>
+</tr>
+<tr>
+<td><code>SyncList&lt;T&gt;</code></td>
+<td>A growable list of unmanaged values</td>
+</tr>
+<tr>
+<td><code>SyncArray&lt;T&gt;</code></td>
+<td>A fixed-length array, resizable as a whole</td>
+</tr>
+<tr>
+<td><code>SyncFixedArray&lt;T&gt;</code></td>
+<td>A fixed-capacity array of comparable values</td>
+</tr>
+<tr>
+<td><code>SyncDict&lt;TKey,TValue&gt;</code></td>
+<td>Key/value pairs of unmanaged types</td>
+</tr>
+<tr>
+<td><code>SyncHashSet&lt;T&gt;</code></td>
+<td>A set of unmanaged values</td>
+</tr>
+<tr>
+<td><code>SyncQueue&lt;T&gt;</code></td>
+<td>FIFO of unmanaged values</td>
+</tr>
+<tr>
+<td><code>SyncTimer</code></td>
+<td>A countdown that ticks with your logic (<code>Update(dt)</code>, <code>IsTimeElapsed</code>, <code>Progress</code>)</td>
+</tr>
+<tr>
+<td><code>SyncPongTimer</code></td>
+<td>A timer that bounces between its bounds</td>
+</tr>
+<tr>
+<td><code>SyncStateMachine&lt;T&gt;</code></td>
+<td>An enum-keyed state machine with <code>OnEnter</code>/<code>OnUpdate</code>/<code>OnExit</code> per state</td>
+</tr>
+<tr>
+<td><code>SyncNetSerializable&lt;T&gt;</code></td>
+<td>A value serialized through LiteNetLib's <code>INetSerializable</code></td>
+</tr>
+<tr>
+<td><code>SyncSpanSerializable&lt;T&gt;</code></td>
+<td>A value serialized through <a href="rpc-payloads.html"><code>ISpanSerializable</code></a></td>
+</tr>
+<tr>
+<td><code>SyncScriptableObject&lt;T&gt;</code></td>
+<td>A Unity <code>ScriptableObject</code> that is also <code>INetSerializable</code></td>
+</tr>
+<tr>
+<td><code>JsonSyncableField&lt;T&gt;</code></td>
+<td>A Unity object synchronized as JSON</td>
+</tr>
+<tr>
+<td><code>SyncSquare&lt;T&gt;</code></td>
+<td>A two-dimensional grid of unmanaged values</td>
+</tr>
+</tbody>
+</table>
+<p>Element types of the collections must be <code>unmanaged</code> — the same constraint as <a href="syncvar.html"><code>SyncVar&lt;T&gt;</code></a>.</p>
+<h2 id="using-them">Using them</h2>
+<p>Declare as <code>readonly</code> fields, mutate on the server, read anywhere — the rules of <a href="syncablefield-basics.html">SyncableField basics</a> apply unchanged:</p>
+<p><strong>Inventory.cs</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+using LiteEntitySystem.Extensions;
+
+public class Inventory : EntityLogic
+{
+    public readonly SyncString OwnerName = new();
+    public readonly SyncList&lt;ushort&gt; Items = new();
+    public readonly SyncStateMachine&lt;LockState&gt; State = new();
+
+    public Inventory(EntityParams entityParams) : base(entityParams)
+    {
+        State.Add(LockState.Locked, new StateCalls { OnEnter = PlayLockSound });
+    }
+
+    private void PlayLockSound() { }
+}
+
+public enum LockState : byte { Locked, Open }
+</code></pre>
+<h2 id="rollback-support">Rollback support</h2>
+<p>Types built on <code>SyncableFieldCustomRollback</code> restore their server-confirmed contents at every rollback and re-apply predicted edits during re-simulation: <code>SyncList</code>, <code>SyncDict</code>, <code>SyncHashSet</code>, <code>SyncQueue</code> (and the built-in <code>Childs</code> of every <code>EntityLogic</code>).</p>
+<p>Everything else — <code>SyncString</code>, <code>SyncTimer</code>, <code>SyncArray</code>, the serializable wrappers — is outside prediction: its contents are whatever the server last sent. That is fine for data a client never modifies predictively, and a reason to prefer a rollback-aware collection when it does.</p>
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Editing a non-rollback syncable field from predicted code — the change is never reverted or replayed and drifts out of step with the server.</li>
+<li>A managed element type in a collection (<code>SyncList&lt;string&gt;</code>) — elements must be <code>unmanaged</code>; synchronize text with <code>SyncString</code>, or ids with a lookup.</li>
+<li>Rewriting a whole collection every tick — these types send per-operation calls; a full rewrite each tick sends the whole thing each tick.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="custom-syncablefield.html">custom-syncablefield.md</a></li>
+<li><a href="syncablefield-basics.html">syncablefield-basics.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

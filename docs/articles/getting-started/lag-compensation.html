@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Lag compensation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Lag compensation ">
+      
+      <meta name="description" content="Why server-side hit checks miss without rewinding, and how EnableLagCompensationForOwner makes the server check against what the shooter saw.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="lag-compensation">Lag compensation</h1>
+
+<p>Every client renders remote players slightly in the past (that is what interpolation is), so when a player fires at what they see, the server — which lives in the present — would test the shot against positions the shooter never saw; lag compensation rewinds the relevant entities to the shooter's view for the duration of the hit check.</p>
+<h2 id="when-to-use-this">When to use this</h2>
+<ul>
+<li>Instant hit checks against other players: hitscan weapons, melee swings, interaction traces.</li>
+<li>Per-tick collision checks of fast movers — the example project wraps even its projectile raycast in lag compensation.</li>
+</ul>
+<h2 id="when-not-to">When not to</h2>
+<ul>
+<li>Checks against static geometry — walls don't move; rewinding is about other players' entities.</li>
+<li>Anything about the shooter's own entities — lag compensation rewinds <em>other</em> players' entities relative to the shooter; the owner is never rewound.</li>
+</ul>
+<h2 id="minimal-example">Minimal example</h2>
+<p>A pawn whose position participates in lag compensation, and a shot that uses it:</p>
+<p><strong>ShooterPlayer.cs</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+
+[EntityFlags(EntityFlags.Updateable)]
+public class ShooterPlayer : PawnLogic
+{
+    [SyncVarFlags(SyncFlags.Interpolated | SyncFlags.LagCompensated)]
+    public SyncVar&lt;float&gt; X;
+
+    [SyncVarFlags(SyncFlags.Interpolated | SyncFlags.LagCompensated)]
+    public SyncVar&lt;float&gt; Y;
+
+    public ShooterPlayer(EntityParams entityParams) : base(entityParams) { }
+
+    public void Shoot()
+    {
+        EnableLagCompensationForOwner();
+        // run the hit query here: every other player's lag-compensated
+        // fields temporarily hold the values this player saw on screen
+        DisableLagCompensationForOwner();
+    }
+
+    protected override void OnLagCompensationStart()
+    {
+        // this entity was just rewound: push X/Y into your physics
+        // engine (collider/body position) so raycasts see the old pose
+    }
+
+    protected override void OnLagCompensationEnd()
+    {
+        // values are restored: push X/Y back into the physics engine
+    }
+}
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="marking-fields">Marking fields</h3>
+<p>Only fields with <code>SyncFlags.LagCompensated</code> keep a history and get rewound — typically position and rotation. The server records them every tick into a ring buffer of <code>MaxHistorySize</code> ticks (a <code>ServerEntityManager</code> constructor parameter, default 32).</p>
+<h3 id="the-rewind-scope">The rewind scope</h3>
+<p><code>EnableLagCompensationForOwner()</code> rewinds the lag-compensated fields of all <em>other</em> players' entities to the time this entity's owner was looking at — reconstructed from which two states the client was interpolating between at that input's tick. <code>DisableLagCompensationForOwner()</code> restores the present. Treat the pair as a scope: enable, query, disable, in the same tick.</p>
+<h3 id="the-physics-hooks">The physics hooks</h3>
+<p>Rewinding a <code>SyncVar</code> moves numbers, not colliders. If your hit query goes through a physics engine, each rewound entity gets <code>OnLagCompensationStart</code> / <code>OnLagCompensationEnd</code> — push the rewound values into the physics body there and restore them after, exactly as the example project does with its 2D rigidbodies.</p>
+<h3 id="choosing-the-history-size">Choosing the history size</h3>
+<p><code>MaxHistorySize</code> bounds how far back a shot can be honored — 32 ticks is about half a second at 60 ticks per second, a full second at 30. This is a game-design dial with no correct value: a longer history produces more &quot;I ran behind a wall and still died&quot;, a shorter one more &quot;I shot straight at him and missed&quot;. Tune it per game.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p>History is written for every lag-compensated entity each tick. During the enable/disable window, reads of lag-compensated fields return the rewound values; everything else is untouched. If the requested time has already left the history window, compensation for that shot is skipped and a miss is logged.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p>In normal play, <code>EnableLagCompensationForOwner()</code> is a no-op on the client — there is nothing to rewind, the client already sees its own screen. The call is still safe (and correct) to leave in shared shooting code.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>During rollback re-simulation the same call <em>does</em> work on the client: hit checks re-run under the same rewound conditions the server used, which is what keeps predicted hits (with <code>SyncFlags.AlwaysRollback</code> fields like health) consistent with the server's verdict.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Forgetting <code>SyncFlags.LagCompensated</code> on the fields being tested — the enable call succeeds but those fields simply never rewind, and shots miss by exactly the interpolation delay.</li>
+<li>Enabling without disabling — the rewound state leaks into the rest of the tick and corrupts movement and later checks. Keep the pair tight around the query.</li>
+<li>Rewinding numbers but raycasting stale colliders — without pushing values to the physics engine in <code>OnLagCompensationStart</code>/<code>End</code>, the raycast still hits present-time poses.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><p><a href="adding-a-player.html">adding-a-player.md</a></p>
+</li>
+<li><p><a href="example-project-tour.html">example-project-tour.md</a></p>
+</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

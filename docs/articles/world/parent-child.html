@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Parent and child entities </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Parent and child entities ">
+      
+      <meta name="description" content="The entity parent/child tree - SetParent, Childs, ownership cascade, destruction cascade, change hooks, and how views should mirror it.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="parent-and-child-entities">Parent and child entities</h1>
+
+<p>Entities form a synchronized logical tree: a weapon hangs on a player, an item sits in an inventory, a projectile belongs to its shooter — and attachment carries consequences, because ownership flows down the tree and destruction cascades through it.</p>
+<h2 id="when-to-use-this">When to use this</h2>
+<ul>
+<li>Attachment relationships with gameplay meaning: equipment on a pawn, cargo in a vehicle, area triggers tied to their zone.</li>
+<li>Anything that must transfer ownership together with possession — a weapon handed to another player starts being predicted by <em>that</em> player automatically.</li>
+</ul>
+<h2 id="when-not-to">When not to</h2>
+<ul>
+<li>Pure visual nesting (a hat bone, muzzle flash under a barrel) — that is the view's transform hierarchy, managed in engine code; the entity tree is not required for it.</li>
+<li>References without attachment semantics — a turret's current target is a <code>SyncVar&lt;EntitySharedReference&gt;</code>, not a child.</li>
+</ul>
+<h2 id="minimal-example">Minimal example</h2>
+<p><strong>On the server</strong></p>
+<pre><code class="lang-csharp">// spawn attached: inherits the pawn's owner immediately
+var weapon = _entityManager.AddEntity&lt;GameWeapon&gt;(playerPawn);
+
+// hand it to another player — ownership (and prediction) follow
+weapon.SetParent(otherPawn);
+
+// drop it into the world — reverts to server ownership
+weapon.SetParent(null);
+</code></pre>
+<p><strong>GameWeapon.cs</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+
+public class GameWeapon : EntityLogic
+{
+    public GameWeapon(EntityParams entityParams) : base(entityParams) { }
+
+    protected override void OnParentChanged(EntityLogic oldParent)
+    {
+        // fires on server and on every client, ordered with state:
+        // re-attach the view to the new parent's view here
+    }
+
+    protected override void OnBeforeParentDestroy()
+    {
+        // parent is about to die; reparent here to survive the cascade
+        if (IsServer)
+            SetParent(null);
+    }
+}
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="the-tree">The tree</h3>
+<p><code>Parent</code>/<code>ParentId</code>/<code>GetParent&lt;T&gt;()</code> walk up; <code>Childs</code> — a synchronized set of <code>EntitySharedReference</code> — walks down (<code>Count</code>, <code>Contains</code>, enumeration, <code>ToArray</code>). <code>SetParent</code> is server-only and a silent no-op on the client; spawning with <code>AddEntity&lt;T&gt;(parent, …)</code> attaches at creation, which is cheaper than spawn-then-reparent.</p>
+<h3 id="ownership-flows-down">Ownership flows down</h3>
+<p>Attaching an entity rewrites its owner to the parent's owner, recursively through its whole subtree — and with ownership comes everything from <a href="ownership-and-players.html">ownership-and-players.md</a>: who predicts it, who receives owner-only fields. Detaching (<code>SetParent(null)</code>) reverts the subtree to server ownership. This is the same mechanism possession uses, so a weapon on a pawn is predicted by the pawn's player with no extra wiring.</p>
+<h3 id="change-hooks">Change hooks</h3>
+<p>Three notifications, firing on the server and on every client in order with state: <code>OnParentChanged(oldParent)</code> on the moved entity, <code>OnChildAdded(child)</code> / <code>OnChildRemoved(child)</code> on the parents. The arguments are the <em>previous</em> parent and the affected child; current relations are already readable through the properties.</p>
+<h3 id="the-destruction-cascade">The destruction cascade</h3>
+<p>Destroying a parent first gives every child <code>OnBeforeParentDestroy()</code>, then destroys the children that are still attached. The hook is the escape hatch: a child that reparents itself there (as <code>GameWeapon</code> above) leaves <code>Childs</code> and survives the cascade. <code>OnBeforeParentDestroy</code> runs where the destruction is simulated — server, or owner client for local entities.</p>
+<h3 id="views-mirror-the-tree-not-the-other-way-around">Views mirror the tree, not the other way around</h3>
+<p><code>Childs</code> <em>can</em> drive an engine transform hierarchy, but the recommended split is: the entity tree is the logical truth, and views react to it — attach and detach engine objects in <code>OnParentChanged</code>/<code>OnConstructed</code> on the client. The library never touches transforms; if nothing re-attaches the view, the weapon's model stays where it was while its entity moves to a new parent.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p><code>SetParent</code> applies immediately: <code>Childs</code> sets update, ownership cascades, hooks fire, and the change ships to clients in order with state. Destruction cascades run here (or on the owning client for predicted local entities).</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p>The tree is read-only: <code>SetParent</code> is a no-op, <code>Childs</code> and <code>Parent</code> reflect the last applied state, hooks fire as the changes sync in. Reparenting that shifts ownership to or from the local player automatically starts or stops prediction for that subtree.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p><code>Childs</code> participates in rollback with custom logic: predicted membership changes (a projectile predictively added under its shooter) are reverted to the server's set and re-applied during re-simulation. This is internal to <code>AddPredictedEntity</code> — game code doesn't manage it.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Expecting the view to move when the entity reparents — the library moves no transforms; re-attach views in <code>OnParentChanged</code> (or manage visual nesting entirely view-side).</li>
+<li>Attaching an entity to a pawn and forgetting what ownership now means — the pawn's player starts predicting it and receives its owner-only fields; detach reverts to server ownership.</li>
+<li>Destroying a parent and assuming children survive — they die with it unless they reparent inside <code>OnBeforeParentDestroy</code>.</li>
+<li>Calling <code>SetParent</code> on the client and wondering why nothing happened — the tree is server-authoritative; the call is a silent no-op.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="finding-entities.html">finding-entities.md</a></li>
+<li><a href="ownership-and-players.html">ownership-and-players.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

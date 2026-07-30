@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Attaching Unity views </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Attaching Unity views ">
+      
+      <meta name="description" content="The Unity view patterns - entity-owned GameObjects, the proxy MonoBehaviour, local vs remote prefabs, and effects that outlive entities.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="attaching-unity-views">Attaching Unity views</h1>
+
+<p>Entities are plain classes, so something has to put them on screen: the established pattern is an entity-owned GameObject created in <code>OnConstructed</code>, a proxy MonoBehaviour that mirrors interpolated state every frame, and external subscriptions for the pieces that belong to the player rather than the entity (camera, UI).</p>
+<h2 id="when-to-use-this">When to use this</h2>
+<ul>
+<li>Any entity a Unity client renders — pawns, projectiles, pickups.</li>
+<li>Physics-queryable views: the proxy is also how raycast hits resolve back to entities.</li>
+</ul>
+<h2 id="when-not-to">When not to</h2>
+<ul>
+<li>Effects that must outlive their entity (death explosion, hit sparks) — pooled MonoBehaviours triggered from RPC handlers or <code>OnDestroy</code>, not entity views.</li>
+<li>Headless server builds — no view code runs there at all; keep it behind <code>IsClient</code> or in a client-only assembly.</li>
+</ul>
+<h2 id="minimal-example">Minimal example</h2>
+<p><strong>ViewPlayer.cs</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+using UnityEngine;
+
+[EntityFlags(EntityFlags.Updateable)]
+public class ViewPlayer : PawnLogic
+{
+    [SyncVarFlags(SyncFlags.Interpolated)]
+    public SyncVar&lt;Vector2&gt; Position;
+
+    public GameObject UnityObject { get; private set; }
+
+    public ViewPlayer(EntityParams entityParams) : base(entityParams) { }
+
+    protected override void OnConstructed()
+    {
+        if (!IsClient)
+            return;
+        UnityObject = new GameObject($&quot;Player_{Id}&quot;);
+        UnityObject.AddComponent&lt;EntityProxy&gt;().Attached = this;
+    }
+
+    protected override void OnDestroy()
+    {
+        if (UnityObject != null)
+            Object.Destroy(UnityObject);
+    }
+}
+
+public class EntityProxy : MonoBehaviour
+{
+    public ViewPlayer Attached;
+
+    private void Update() =&gt;
+        transform.position = Attached.Position.InterpolatedValue;
+}
+</code></pre>
+<p><strong>Camera for the local player (external reaction)</strong></p>
+<pre><code class="lang-csharp">_entityManager.GetEntities&lt;ViewPlayer&gt;().SubscribeToConstructed(p =&gt;
+{
+    if (p.IsLocalControlled)
+        AttachCamera(p.UnityObject);
+}, callOnExisting: true);
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="entity-owned-views">Entity-owned views</h3>
+<p>The entity creates its GameObject in <code>OnConstructed</code> (synced values are applied — it spawns in the right place) and destroys it in <code>OnDestroy</code>. Prefab-based views load and <code>Instantiate</code> the same way the example's projectile does; naming objects with the entity <code>Id</code> pays off in the hierarchy window. The view's lifetime is exactly the entity's lifetime, with no bookkeeping.</p>
+<h3 id="the-proxy">The proxy</h3>
+<p>The proxy MonoBehaviour has two jobs. Forward: mirror entity state into the transform every render frame, always from <code>InterpolatedValue</code>. Backward: physics — the example's <code>PlayerProxy</code> sits on the collider object, so a raycast hit resolves to <code>hit.TryGetComponent&lt;PlayerProxy&gt;()</code> → the entity behind it. One component, both directions of the entity↔engine bridge.</p>
+<h3 id="local-vs-remote">Local vs remote</h3>
+<p><code>IsLocalControlled</code> splits presentation: the example instantiates <code>ClientPlayerView</code> (camera rig) for the owner and <code>RemotePlayerView</code> (name tag, health label) for everyone else — via <code>SubscribeToConstructed</code>, because the camera belongs to the player, not to any single pawn's class. Sync-group changes plug in the same way: the example toggles <code>UnityObject.SetActive</code> in <code>OnSyncGroupsChanged</code> when the server culls a player's data by distance.</p>
+<h3 id="where-view-code-lives">Where view code lives</h3>
+<p>Two options. <code>IsClient</code> guards inside a shared class — simple, used by the example. Or a client subclass under the <a href="../getting-started/registering-entity-types.html">side-variant registration</a>: all Unity code in <code>ClientPlayer : BasePlayer</code> in a client-only assembly, and the server build never references UnityEngine types at all. The second scales better for dedicated-server projects.</p>
+<h3 id="effects-that-outlive-entities">Effects that outlive entities</h3>
+<p>A death explosion must play after its entity is gone, so it cannot be the entity's view. The example's pattern: pooled effect MonoBehaviours (<code>GamePool&lt;T&gt;</code>), spawned from RPC handlers and <code>OnDestroy</code> — fire-and-forget engine objects, invisible to the entity system.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p>No views, ever — <code>OnConstructed</code> runs but the <code>IsClient</code> guard (or the absence of the client assembly) keeps it logic-only. A dedicated build with side-variant classes contains no UnityEngine view code to strip.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p>Views follow the entity lifecycle exactly: constructed after data applies, destroyed with the entity, reattached in <code>OnParentChanged</code> when the <a href="parent-child.html">entity tree</a> changes. The proxy reads interpolated values, so views are smooth regardless of send rate.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>Rollback never touches views: lifecycle hooks don't re-fire and the proxy keeps reading <code>InterpolatedValue</code>, which absorbs small corrections smoothly. Only effect-spawning code inside <code>Update</code> needs the <code>InNormalState</code> gate covered in <a href="update-flags.html">update-flags.md</a>.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>The proxy reading <code>.Value</code> instead of <code>.InterpolatedValue</code> — movement stutters at the send rate; interpolation only exists on fields marked <code>SyncFlags.Interpolated</code>.</li>
+<li>Creating the view in the entity constructor — synced values aren't applied yet, the object spawns at the origin and snaps.</li>
+<li>No <code>OnDestroy</code> cleanup — orphaned GameObjects accumulate every respawn.</li>
+<li>Gameplay logic in the view's MonoBehaviour <code>Update</code> — the view is a read-only mirror; logic belongs in the entity's <code>Update</code>, where prediction and rollback can see it.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="update-flags.html">update-flags.md</a></li>
+<li><a href="finding-entities.html">finding-entities.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

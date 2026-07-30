@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Finding entities </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Finding entities ">
+      
+      <meta name="description" content="Live entity queries with GetEntities and EntityFilter, spawn/despawn subscriptions, and resolving EntitySharedReference safely.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="finding-entities">Finding entities</h1>
+
+<p>The manager answers three questions: &quot;all entities of a type&quot; (<code>GetEntities&lt;T&gt;</code> — a live filter), &quot;tell me when one appears or dies&quot; (filter subscriptions), and &quot;the entity behind this reference&quot; (<code>GetEntityById</code> for <code>EntitySharedReference</code>).</p>
+<h2 id="when-to-use-this">When to use this</h2>
+<ul>
+<li>Iterating everything of a kind — all players for a scoreboard, all pickups for a minimap.</li>
+<li>Reacting to spawns and despawns without polling — <code>SubscribeToConstructed</code> / <code>OnDestroyed</code>.</li>
+<li>Storing entity references inside game state — always as <code>EntitySharedReference</code>, resolved on use.</li>
+</ul>
+<h2 id="when-not-to">When not to</h2>
+<ul>
+<li>One-per-world services — <a href="singletons.html"><code>GetSingleton&lt;T&gt;()</code></a> is direct and typed.</li>
+<li>The local player's controller — <code>GetPlayerController&lt;T&gt;()</code> on the client, <code>GetPlayerController(player)</code> on the server.</li>
+<li>Hand-rolled static registries of entities — a filter already is that list, maintained for you.</li>
+</ul>
+<h2 id="minimal-example">Minimal example</h2>
+<p>A client-side minimap:</p>
+<p><strong>Minimap.cs (client)</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+
+public class Minimap
+{
+    public Minimap(ClientEntityManager manager)
+    {
+        EntityFilter&lt;BasePlayer&gt; players = manager.GetEntities&lt;BasePlayer&gt;();
+        players.SubscribeToConstructed(AddBlip, callOnExisting: true);
+        players.OnDestroyed += RemoveBlip;
+    }
+
+    public void Refresh(ClientEntityManager manager)
+    {
+        foreach (var player in manager.GetEntities&lt;BasePlayer&gt;())
+            MoveBlip(player, player.Position);
+    }
+
+    private void AddBlip(BasePlayer player) { /* create marker */ }
+    private void RemoveBlip(BasePlayer player) { /* remove marker */ }
+    private void MoveBlip(BasePlayer player, object pos) { /* update marker */ }
+}
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="filters-are-live-queries">Filters are live queries</h3>
+<p><code>GetEntities&lt;T&gt;()</code> returns an <code>EntityFilter&lt;T&gt;</code> — not a snapshot. It is created lazily, backfilled with matching entities that already exist, and maintained as entities construct and die. Iteration order is creation order. Matching includes subclasses: <code>GetEntities&lt;BasePlayer&gt;()</code> yields <code>ServerPlayer</code>/<code>ClientPlayer</code> instances from the <a href="../getting-started/registering-entity-types.html">side-variant pattern</a> as well as any other derived class.</p>
+<h3 id="spawn-and-despawn-callbacks">Spawn and despawn callbacks</h3>
+<p><code>SubscribeToConstructed(callback, callOnExisting)</code> fires for every entity of the type once it is fully constructed and synced; <code>callOnExisting: true</code> replays it for entities already in the filter — essential on the client, where the baseline may have constructed the world before your subscription. <code>OnDestroyed</code> fires as entities are removed from the filter; <code>UnsubscribeToConstructed</code> detaches.</p>
+<h3 id="entity-references">Entity references</h3>
+<p><code>EntitySharedReference</code> is the storable form of &quot;that entity&quot;: id plus version, implicit conversion from an entity, <code>Empty</code>/<code>IsValid</code> for null-checks. Resolve with <code>GetEntityById&lt;T&gt;(reference)</code> — it returns null for an empty reference, a type mismatch, or a stale version after id reuse — or with <code>TryGetEntityById&lt;T&gt;(reference, out var entity)</code>:</p>
+<pre><code class="lang-csharp">public SyncVar&lt;EntitySharedReference&gt; LastAttacker;
+
+if (EntityManager.TryGetEntityById(LastAttacker, out BasePlayer attacker))
+    ShowKillerName(attacker);
+</code></pre>
+<p>Resolve-on-use is the pattern: the reference lives in state, the object reference lives on the stack.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p>Filters see the whole world — every synced entity plus server-only AI controllers. The library's own loops (input application over <code>GetEntities&lt;HumanControllerLogic&gt;</code>, for instance) run on the same filters your code uses.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p>Filters contain only what this client receives: no other players' controllers, no entities hidden by <code>EntityFlags.OnlyForOwner</code>, no AI controllers. The same <code>GetEntities&lt;BasePlayer&gt;()</code> loop is simply shorter here — code shared between sides needs no special casing.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>References resolve identically during rollback, and local predicted entities live in the filters like everything else. Filter membership itself is not rolled back — an entity is in or out based on its actual construction state, not the re-simulated tick.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Keeping plain C# references to entities in long-lived state — after destruction and id reuse they point at the wrong object; store <code>EntitySharedReference</code>, resolve on use.</li>
+<li>Destroying entities while iterating their filter — copy to a temporary array first (the library does exactly this in its own bulk operations).</li>
+<li>Subscribing on the client with <code>callOnExisting: false</code> — everything constructed from the baseline before your subscription is silently missed.</li>
+<li>Expecting client filters to match the server's — the client sees only its slice of the world; counts and iteration results legitimately differ per side.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="unity-views.html">unity-views.md</a></li>
+<li><a href="singletons.html">singletons.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

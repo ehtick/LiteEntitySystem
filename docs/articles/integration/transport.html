@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Transport layer </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Transport layer ">
+      
+      <meta name="description" content="The transport abstraction - what AbstractNetPeer must provide, sharing a connection with your own packets, and writing a custom transport.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="transport-layer">Transport layer</h1>
+
+<p>The library never talks to a socket: it hands byte spans to an <code>AbstractNetPeer</code> and expects two delivery modes back. LiteNetLib is the shipped implementation; anything that can offer reliable-ordered and unreliable delivery can replace it.</p>
+<h2 id="what-a-transport-must-provide">What a transport must provide</h2>
+<p><code>AbstractNetPeer</code> has four members:</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SendReliableOrdered(ReadOnlySpan&lt;byte&gt;)</code></td>
+<td>Guaranteed delivery, in order. Used for baselines and client requests</td>
+</tr>
+<tr>
+<td><code>SendUnreliable(ReadOnlySpan&lt;byte&gt;)</code></td>
+<td>Best effort, no retransmission. Used for state deltas and inputs</td>
+</tr>
+<tr>
+<td><code>GetMaxUnreliablePacketSize()</code></td>
+<td>Largest payload that fits one unreliable packet, so state can be split into parts</td>
+</tr>
+<tr>
+<td><code>TriggerSend()</code></td>
+<td>Flush now rather than at the transport's next opportunity</td>
+</tr>
+</tbody>
+</table>
+<p>The library relies on those semantics being honest. Unreliable must really be allowed to drop packets — layering it on a reliable stream adds head-of-line blocking exactly where the design assumes there is none, and stale states would queue up behind lost ones instead of being superseded.</p>
+<h2 id="using-litenetlib">Using LiteNetLib</h2>
+<p>Wrap the connection and pass it in — server side per player, client side once:</p>
+<pre><code class="lang-csharp">// server
+var player = _entityManager.AddPlayer(new LiteNetLibNetPeer(peer, assignToTag: true));
+
+// client
+_entityManager = new ClientEntityManager(typesMap, new LiteNetLibNetPeer(peer, true), headerByte);
+</code></pre>
+<p><code>assignToTag: true</code> stores the adapter in LiteNetLib's <code>Tag</code>, which is how later callbacks recover it (<code>(LiteNetLibNetPeer)peer.Tag</code>). The extension methods <code>GetLiteNetLibNetPeerFromTag()</code> and <code>GetLiteNetLibNetPeer()</code> do the same lookups in one call.</p>
+<h2 id="sharing-a-connection">Sharing a connection</h2>
+<p>Every packet the library produces starts with the header byte given to the manager, so your own protocol can travel on the same connection. Route by peeking at the first byte:</p>
+<pre><code class="lang-csharp">// server side
+if ((PacketType)reader.PeekByte() == PacketType.EntitySystem)
+    _entityManager.Deserialize((LiteNetLibNetPeer)peer.Tag, reader.GetRemainingBytesSpan());
+else
+    _myProtocol.Read(reader, peer);
+</code></pre>
+<p><code>Deserialize</code> also validates the header itself and returns <code>HeaderCheckFailed</code> for anything that is not a library packet, so a mistake here is diagnosable rather than corrupting.</p>
+<h2 id="writing-a-custom-transport">Writing a custom transport</h2>
+<p>Implement the four members over your own connection object and use it wherever <code>LiteNetLibNetPeer</code> would appear — the managers accept any <code>AbstractNetPeer</code>:</p>
+<p><strong>MyTransportPeer.cs</strong></p>
+<pre><code class="lang-csharp">using System;
+using LiteEntitySystem.Transport;
+
+public class MyTransportPeer : AbstractNetPeer
+{
+    private readonly MyConnection _connection;
+
+    public MyTransportPeer(MyConnection connection) =&gt; _connection = connection;
+
+    public override void SendReliableOrdered(ReadOnlySpan&lt;byte&gt; data) =&gt;
+        _connection.Send(data, reliable: true);
+
+    public override void SendUnreliable(ReadOnlySpan&lt;byte&gt; data) =&gt;
+        _connection.Send(data, reliable: false);
+
+    public override int GetMaxUnreliablePacketSize() =&gt; _connection.Mtu - MyConnection.HeaderOverhead;
+
+    public override void TriggerSend() =&gt; _connection.Flush();
+}
+</code></pre>
+<p>Then feed received bytes to <code>Deserialize</code> — with the sending player on the server, without arguments on the client — and the rest of the library is unchanged. Peer-management APIs still work: <code>AddPlayer(peer)</code> accepts your type, and <code>NetPlayer.Peer</code> hands it back.</p>
+<p>Report <code>GetMaxUnreliablePacketSize</code> honestly: too large and packets fragment or drop below the library, too small and state is split into more parts than necessary.</p>
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Implementing &quot;unreliable&quot; as reliable — deltas then queue behind lost packets, adding latency the design specifically avoids.</li>
+<li>An optimistic <code>GetMaxUnreliablePacketSize</code> — states are sized against it; overshooting means silent drops at the network layer.</li>
+<li>Skipping <code>TriggerSend</code> — everything still works, but each send waits for the transport's own schedule, adding avoidable latency.</li>
+<li>Feeding foreign packets into <code>Deserialize</code> — check the header byte first; the return value tells you when you got it wrong.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="hosting.html">hosting.md</a></li>
+<li><a href="limits.html">limits.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

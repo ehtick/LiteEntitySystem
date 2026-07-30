@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Your first synced entity </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Your first synced entity ">
+      
+      <meta name="description" content="A minimal EntityLogic subclass - SyncVars, an RPC, a change callback, spawning on the server and smooth rendering on the client.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="your-first-synced-entity">Your first synced entity</h1>
+
+<p>This page builds the smallest complete entity: a class with synchronized fields that updates on the server, exists on every client, and renders smoothly through interpolation.</p>
+<h2 id="when-to-use-this">When to use this</h2>
+<ul>
+<li><code>EntityLogic</code> is the base for world objects that are not driven by player input: pickups, doors, zones, match state.</li>
+<li>Anything whose state must be the same for all players belongs in an entity with <code>SyncVar</code> fields.</li>
+</ul>
+<h2 id="when-not-to">When not to</h2>
+<ul>
+<li>Player-controlled characters — those are pawns possessed by controllers, covered in <a href="adding-a-player.html">adding-a-player.md</a>.</li>
+<li>World services that exist exactly once (physics manager, match rules) — <code>SingletonEntityLogic</code> fits better.</li>
+<li>Purely visual objects (particles, decals, UI) — not entities; they stay entirely in engine code.</li>
+</ul>
+<h2 id="minimal-example">Minimal example</h2>
+<p>A crystal that bobs up and down on the server and is worth a few points:</p>
+<p><strong>ScoreCrystal.cs</strong></p>
+<pre><code class="lang-csharp">using System;
+using LiteEntitySystem;
+
+[EntityFlags(EntityFlags.Updateable)]
+public class ScoreCrystal : EntityLogic
+{
+    [SyncVarFlags(SyncFlags.Interpolated)]
+    public SyncVar&lt;float&gt; Height;
+
+    public SyncVar&lt;byte&gt; Score;
+
+    private static RemoteCall _sparkleRemoteCall;
+
+    public ScoreCrystal(EntityParams entityParams) : base(entityParams) { }
+
+    protected override void RegisterRPC(ref RPCRegistrator r)
+    {
+        base.RegisterRPC(ref r);
+        r.CreateRPCAction(this, OnSparkle, ref _sparkleRemoteCall, ExecuteFlags.SendToAll);
+        r.BindOnChange(this, ref Score, OnScoreChanged);
+    }
+
+    // server-side: makes every client play the effect once
+    public void Sparkle() =&gt; ExecuteRPC(_sparkleRemoteCall);
+
+    private void OnSparkle()
+    {
+        // play a one-shot effect on the view
+    }
+
+    private void OnScoreChanged(byte prevScore)
+    {
+        // Score just changed by sync from the server; update the view's label
+    }
+
+    protected override void Update()
+    {
+        base.Update();
+        Height.Value = MathF.Sin(EntityManager.Tick * EntityManager.DeltaTimeF) * 0.25f;
+    }
+
+    protected override void OnConstructed()
+    {
+        if (IsClient)
+        {
+            // create the view object of your engine here
+        }
+    }
+
+    protected override void OnDestroy()
+    {
+        // destroy the view object here
+    }
+}
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="the-class-flag">The class flag</h3>
+<p><code>[EntityFlags(EntityFlags.Updateable)]</code> is what makes <code>Update()</code> run — without it the entity is constructed and synchronized, but its <code>Update()</code> is never called. For a server-owned entity like this one, <code>Update()</code> runs on the server every logic tick.</p>
+<h3 id="the-synchronized-fields">The synchronized fields</h3>
+<p>Two <code>SyncVar</code> fields with different needs. <code>Score</code> is plain data — it syncs whenever it changes. <code>Height</code> changes every tick and is rendered, so it carries <code>SyncFlags.Interpolated</code>: the client keeps an interpolated copy that moves smoothly between the last two received states instead of stepping at the send rate.</p>
+<h3 id="an-rpc-for-one-shot-events">An RPC for one-shot events</h3>
+<p><code>SyncVar</code> is state: whoever connects later still sees the current value. For events that happen once — an effect, a sound — use an RPC. The handle is a <code>static RemoteCall</code> field, registered in the <code>RegisterRPC</code> override with <code>CreateRPCAction</code> and executed on the server with <code>ExecuteRPC</code>; <code>ExecuteFlags.SendToAll</code> delivers it to every client, in order with the state stream. The handle is static because RPC registration happens once per class, not per instance — and the first line of any <code>RegisterRPC</code> override must be <code>base.RegisterRPC(ref r)</code>.</p>
+<h3 id="reacting-to-server-changes">Reacting to server changes</h3>
+<p><code>r.BindOnChange(this, ref Score, OnScoreChanged)</code> binds a callback that fires on the client when a state update changes <code>Score</code> — the right place to update a label or play a reaction, instead of comparing values manually every frame. The callback receives the <em>previous</em> value; the field itself already holds the new one. By default it fires only on sync from the server; other timings (server-side, prediction) are opt-in via <code>BindOnChangeFlags</code>.</p>
+<h3 id="registering-and-spawning">Registering and spawning</h3>
+<p>Like every entity class, the crystal gets an enum member and a registration on both sides (<a href="registering-entity-types.html">registering-entity-types.md</a>), and the server spawns it:</p>
+<p><strong>On the server</strong></p>
+<pre><code class="lang-csharp">var crystal = _entityManager.AddEntity&lt;ScoreCrystal&gt;(e =&gt; e.Score.Value = 10);
+</code></pre>
+<p>The init method runs before <code>OnConstructed</code>, so initial values like <code>Score</code> are part of the entity's very first packet — clients never see a half-initialized crystal.</p>
+<h3 id="the-client-side">The client side</h3>
+<p>The client constructs the crystal automatically when it arrives in a state update. <code>OnConstructed</code> is where the entity creates its view (an engine object), and <code>OnDestroy</code> removes it. In your per-frame view code, read <code>Height.InterpolatedValue</code> — not <code>Height.Value</code> — to place the view: this is the smoothed value, and it is how the example project moves player views too.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p><code>Update()</code> runs every logic tick. Assigning <code>Height.Value</code> compares bytes and marks the field changed only when the value actually differs; changed fields are collected into the next delta-compressed state update at the send rate.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p>The crystal appears with the baseline or with the spawn packet, <code>OnConstructed</code> fires after its initial values are applied. Incoming states update <code>Value</code> in steps; <code>InterpolatedValue</code> blends between the two most recent states, so the view trails the server slightly but moves smoothly.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>This entity is server-owned and nothing predicts it, so it does not participate in rollback at all. If a client-side interaction should predict a change to a field of such an entity (as in the door example on the <a href="../index.html">introduction page</a>), that field needs <code>SyncFlags.AlwaysRollback</code>.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>No <code>[EntityFlags(EntityFlags.Updateable)]</code> on the class — <code>Update()</code> is silently never called; the entity just sits there.</li>
+<li>Rendering from <code>.Value</code> — the view stutters at the send rate. Rendering reads <code>.InterpolatedValue</code>, and only fields marked <code>SyncFlags.Interpolated</code> have it maintained.</li>
+<li>Using an engine vector type (<code>SyncVar&lt;Vector2&gt;</code>) without registering it first — call <code>EntityManager.RegisterFieldType&lt;Vector2&gt;(Vector2.Lerp)</code> on both sides before creating managers; built-in support covers primitives and <code>FloatAngle</code>, not engine types.</li>
+<li>Overriding <code>RegisterRPC</code> without calling <code>base.RegisterRPC(ref r)</code> — base-class RPCs and bindings are lost; the library logs an error naming the offending class.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><p><a href="adding-a-player.html">adding-a-player.md</a></p>
+</li>
+<li><p><a href="registering-entity-types.html">registering-entity-types.md</a></p>
+</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

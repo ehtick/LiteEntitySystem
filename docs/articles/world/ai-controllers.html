@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>AI controllers and bots </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="AI controllers and bots ">
+      
+      <meta name="description" content="AiControllerLogic - server-only bot brains that drive pawns through the same possession path as human players, at zero network cost.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="ai-controllers-and-bots">AI controllers and bots</h1>
+
+<p><code>AiControllerLogic&lt;T&gt;</code> is the bot counterpart of a human controller: it possesses a pawn and feeds it commands through the same <code>BeforeControlledUpdate</code> path, but it exists only on the server — it is never synchronized, never hashed, and clients cannot tell a bot-driven pawn from a human-driven one.</p>
+<h2 id="when-to-use-this">When to use this</h2>
+<ul>
+<li>NPCs and bots that drive a pawn: enemies, training dummies, lobby fillers (the example project spawns 255 of them at startup).</li>
+<li>Reusing one pawn class for humans and bots — the pawn code does not change at all.</li>
+</ul>
+<h2 id="when-not-to">When not to</h2>
+<ul>
+<li>Behavior of a world object itself (a turret tracking targets, a patrolling platform) — put the logic in the entity's own <code>Update()</code>; a controller adds value only when the <em>same pawn</em> can also be driven by something else.</li>
+<li>Match-flow scripting (wave spawners, round logic) — that is a server-side singleton or plain entity, not a possession relationship.</li>
+</ul>
+<h2 id="minimal-example">Minimal example</h2>
+<p>A bot wandering with the <code>MyPlayer</code> pawn from <a href="../getting-started/adding-a-player.html">adding-a-player.md</a>:</p>
+<p><strong>WanderBot.cs (server assembly)</strong></p>
+<pre><code class="lang-csharp">using System;
+using LiteEntitySystem;
+
+public class WanderBot : AiControllerLogic&lt;MyPlayer&gt;
+{
+    private static readonly Random Rng = new();
+
+    private float _direction;
+    private float _changeTimer;
+
+    public WanderBot(EntityParams entityParams) : base(entityParams) { }
+
+    protected override void BeforeControlledUpdate()
+    {
+        _changeTimer -= EntityManager.DeltaTimeF;
+        if (_changeTimer &lt;= 0f)
+        {
+            _direction = (float)(Rng.NextDouble() * Math.Tau);
+            _changeTimer = 2f;
+        }
+        ControlledEntity?.SetMove(MathF.Cos(_direction), MathF.Sin(_direction));
+    }
+}
+</code></pre>
+<p><strong>On the server</strong></p>
+<pre><code class="lang-csharp">var pawn = _entityManager.AddEntity&lt;MyPlayer&gt;();
+_entityManager.AddAIController&lt;WanderBot&gt;(bot =&gt; bot.StartControl(pawn));
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="server-only-by-design">Server-only by design</h3>
+<p>AI controllers are excluded from everything network-related: their field changes are never serialized, their RPCs are never enqueued, they are skipped by the registration hash, and on destruction they are removed immediately instead of waiting for client acknowledgements. That is why the client may simply not register them — the example project's client registers every type except <code>BotController</code>.</p>
+<h3 id="plain-fields-not-syncvars">Plain fields, not SyncVars</h3>
+<p>Because nothing syncs, bot state is ordinary C# fields — <code>_direction</code> and <code>_changeTimer</code> above. Anything about the bot that players <em>should</em> see (its name tag, its health) belongs on the pawn, which is a normal synced entity owned by the server.</p>
+<h3 id="the-same-possession-without-a-player">The same possession, without a player</h3>
+<p><code>AddAIController&lt;T&gt;()</code> spawns the controller; <code>StartControl</code>, <code>StopControl</code> and <code>DestroyWithControlledEntity</code> work exactly as on <a href="controllers-in-depth.html">controllers-in-depth.md</a>. There is no <code>NetPlayer</code> behind a bot: the pawn stays server-owned, and player-based lookups (<code>GetPlayerController</code>) will never return an AI controller. <code>IsBot</code> distinguishes the two branches when code holds a base <code>ControllerLogic</code> reference.</p>
+<h3 id="randomness-is-fine-here">Randomness is fine here</h3>
+<p><code>BeforeControlledUpdate</code> of an AI controller runs only on the server, so nondeterministic randomness is harmless — nothing re-simulates it. This is an exception, not the rule: the same <code>Random</code> calls inside a <em>predicted</em> pawn or projectile would desync prediction, since rollback re-runs that code expecting identical results.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p>The controller is <code>Updateable</code>: <code>BeforeControlledUpdate</code> runs every tick right before its pawn's <code>Update</code>, same as for humans. Destruction is immediate — no destroy event is sent, because clients never knew the controller existed.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p>Nothing exists client-side. Bot pawns arrive as ordinary server-owned entities — interpolated, lag-compensated, damageable — indistinguishable from any other remote pawn unless your game data (a name, a flag on the pawn) says otherwise.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>Bots are never predicted — no client owns them. Their pawns still participate in other clients' prediction normally: an <code>AlwaysRollback</code> health field on a bot's pawn predicts damage the same way it does on a human's pawn.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Declaring SyncVars or RPCs in an AI controller and expecting clients to see them — nothing in an AI controller ever syncs; player-visible state belongs on the pawn.</li>
+<li>Reaching a bot through player-based APIs — there is no <code>NetPlayer</code>, so <code>GetPlayerController</code> and connection-oriented flows skip bots entirely; keep your own registry of bot controllers if you need one.</li>
+<li>Copying bot code with <code>Random</code> into a predicted entity — safe in a server-only controller, a desync source anywhere rollback re-simulates.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="controllers-in-depth.html">controllers-in-depth.md</a></li>
+<li><a href="update-flags.html">update-flags.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

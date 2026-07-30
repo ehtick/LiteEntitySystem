@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>SyncGroups: per-player data visibility </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="SyncGroups: per-player data visibility ">
+      
+      <meta name="description" content="Toggling groups of SyncVars and RPCs per player - distance culling, visibility systems, and what keeps syncing regardless.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="syncgroups-per-player-data-visibility">SyncGroups: per-player data visibility</h1>
+
+<p>A sync group is a tag on SyncVars and RPCs that the server can switch off for one player: the entity still exists for them, but the tagged data stops arriving — the mechanism behind distance culling and &quot;you don't get enemy positions until you can see them&quot;.</p>
+<h2 id="when-to-use-this">When to use this</h2>
+<ul>
+<li>Bandwidth: stop sending detailed state of entities far away from a player.</li>
+<li>Anti-cheat: withhold data a player must not know yet — positions of unseen enemies cannot be extracted from packets that were never sent.</li>
+</ul>
+<h2 id="when-not-to">When not to</h2>
+<ul>
+<li>Hiding an entity entirely from everyone but its owner — that is <code>EntityFlags.OnlyForOwner</code> at <a href="../world/update-flags.html">class level</a>, no per-player logic needed.</li>
+<li>A single owner-private field — <a href="sync-flags.html"><code>SyncFlags.OnlyForOwner</code></a> is simpler and static.</li>
+</ul>
+<h2 id="minimal-example">Minimal example</h2>
+<p><strong>VisibilityController.cs (server logic in the player's controller)</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+
+public class VisibilityController : HumanControllerLogic&lt;PlayerInput, MyPlayer&gt;
+{
+    private const float VisibleRange = 35f;
+
+    public VisibilityController(EntityParams entityParams) : base(entityParams) { }
+
+    protected override void Update()
+    {
+        base.Update();
+        if (!IsServer || ControlledEntity == null)
+            return;
+
+        foreach (var other in EntityManager.GetEntities&lt;MyPlayer&gt;())
+        {
+            bool visible = Distance(ControlledEntity, other) &lt; VisibleRange;
+            ServerManager.ToggleSyncGroup(OwnerId, other, SyncGroup.SyncGroup1, visible);
+        }
+    }
+
+    private static float Distance(MyPlayer a, MyPlayer b) =&gt; 0f; // your metric
+}
+</code></pre>
+<p><strong>MyPlayer.cs — tagging the data</strong></p>
+<pre><code class="lang-csharp">[SyncVarFlags(SyncFlags.Interpolated | SyncFlags.SyncGroup1)]
+public SyncVar&lt;float&gt; X;
+
+protected override void RegisterRPC(ref RPCRegistrator r)
+{
+    base.RegisterRPC(ref r);
+    r.CreateRPCAction(this, OnShoot, ref _shootRpc,
+        ExecuteFlags.SendToOther | ExecuteFlags.SyncGroup1);
+}
+
+protected override void OnSyncGroupsChanged(SyncGroup enabledGroups)
+{
+    // client: show or hide the view as data starts or stops arriving
+    SetViewActive(enabledGroups.HasFlagFast(SyncGroup.SyncGroup1));
+}
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="tagging-and-toggling">Tagging and toggling</h3>
+<p>There are five groups. A <code>SyncVar</code> joins one through <code>SyncFlags.SyncGroup1</code>…<code>SyncGroup5</code>, an RPC through the matching <code>ExecuteFlags</code> values. Untagged members are always sent. The server switches a group per (player, entity) pair with <code>ToggleSyncGroup(playerId, entity, group, enable)</code> — typically re-evaluated each tick from the player's controller, as above.</p>
+<p>Five groups is a deliberate limit: the flags ride along in existing bit fields, and in practice one or two — &quot;detailed state&quot; and maybe &quot;audio-range events&quot; — cover most games.</p>
+<h3 id="what-still-syncs">What still syncs</h3>
+<p>Entity creation and destruction always reach every player who can see the entity, regardless of groups. So a culled player still knows the entity exists — they simply stop receiving its tagged data. Untagged fields keep flowing too, which is how you keep a cheap &quot;still alive, roughly here&quot; signal while withholding the precise state.</p>
+<p>An entity's owner is never culled from their own data: toggling a group for the player who owns the entity does nothing.</p>
+<h3 id="on-the-client">On the client</h3>
+<p>When a group turns off, tagged fields stop updating and hold their last received values; RPCs in that group are not delivered. <code>OnSyncGroupsChanged(enabledGroups)</code> fires on the entity so the view can react — the example project deactivates the player's GameObject there, so a culled player neither renders at a stale position nor plays sounds.</p>
+<p>When the group turns back on, the server resends the current values of that group's fields, so the entity catches up in one state update.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p>Group state is stored per player and consulted while composing each packet: disabled fields are skipped, disabled RPCs are dropped for that player. Re-enabling marks the group's fields as changed so they are resent in full.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p>There is no client-side control — the client only observes through <code>IsSyncGroupEnabled(group)</code> and <code>OnSyncGroupsChanged</code>. Values of a disabled group are stale by definition: never drive gameplay logic from them, only presentation.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>Culling and prediction are orthogonal: a client predicts entities it owns, and it always receives its own entities' data in full. Fields of a culled remote entity simply stop being corrected while the group is off.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Reading a culled entity's tagged fields as if current — they hold the last value from before the cull; gate view code with <code>IsSyncGroupEnabled</code> and never base logic on them.</li>
+<li>Tagging position but forgetting the related RPCs — shot and footstep calls keep arriving from entities the player cannot see; tag both sides of a feature with the same group.</li>
+<li>Toggling from client code — <code>ToggleSyncGroup</code> exists on <code>ServerEntityManager</code> only; visibility is a server decision.</li>
+<li>Expecting a culled entity to disappear — creation and destruction always sync; hide the view yourself in <code>OnSyncGroupsChanged</code>.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="../netcode/tick-model.html">../netcode/tick-model.md</a></li>
+<li><a href="sync-flags.html">sync-flags.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

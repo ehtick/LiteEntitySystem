@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Starting a server </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Starting a server ">
+      
+      <meta name="description" content="Creating a ServerEntityManager over LiteNetLib - constructor parameters, the update pump, adding and removing players, and routing incoming packets.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="starting-a-server">Starting a server</h1>
+
+<p>A game server is a <code>ServerEntityManager</code> plus a transport: the manager simulates the world and builds state packets, the transport moves bytes — below with LiteNetLib 2, which the library ships with as the default.</p>
+<h2 id="minimal-example">Minimal example</h2>
+<p><strong>GameServer.cs</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+using LiteEntitySystem.Transport;
+using LiteNetLib;
+
+public enum PacketType : byte
+{
+    EntitySystem,
+    Serialized
+}
+
+public class GameServer : ILiteNetEventListener
+{
+    private LiteNetManager _netManager;
+    private ServerEntityManager _entityManager;
+
+    public void Start()
+    {
+        _entityManager = new ServerEntityManager(
+            GameTypes.Build(),              // EntityTypesMap, see &quot;Registering entity types&quot;
+            (byte)PacketType.EntitySystem,  // header byte of every LES packet
+            30,                             // logic ticks per second
+            ServerSendRate.EqualToFPS);     // send a state update every tick
+
+        _netManager = new LiteNetManager(this) { AutoRecycle = true };
+        _netManager.Start(10515);
+    }
+
+    public void Update() // call every frame of your loop
+    {
+        _netManager.PollEvents();
+        _entityManager.Update();
+    }
+
+    void ILiteNetEventListener.OnConnectionRequest(LiteConnectionRequest request) =&gt;
+        request.AcceptIfKey(&quot;MyGame&quot;);
+
+    void ILiteNetEventListener.OnPeerConnected(LiteNetPeer peer)
+    {
+        NetPlayer player = _entityManager.AddPlayer(new LiteNetLibNetPeer(peer, true));
+        var pawn = _entityManager.AddEntity&lt;BasePlayer&gt;();
+        _entityManager.AddController&lt;BasePlayerController&gt;(player, pawn);
+    }
+
+    void ILiteNetEventListener.OnPeerDisconnected(LiteNetPeer peer, DisconnectInfo info)
+    {
+        if (peer.Tag != null)
+            _entityManager.RemovePlayer((LiteNetLibNetPeer)peer.Tag);
+    }
+
+    void ILiteNetEventListener.OnNetworkReceive(LiteNetPeer peer, NetPacketReader reader, DeliveryMethod method)
+    {
+        if ((PacketType)reader.PeekByte() == PacketType.EntitySystem)
+            _entityManager.Deserialize((LiteNetLibNetPeer)peer.Tag, reader.GetRemainingBytesSpan());
+        // other PacketType values are your own protocol
+    }
+
+    void ILiteNetEventListener.OnNetworkError(System.Net.IPEndPoint endPoint, System.Net.Sockets.SocketError error) { }
+    void ILiteNetEventListener.OnNetworkReceiveUnconnected(System.Net.IPEndPoint endPoint, NetPacketReader reader, UnconnectedMessageType type) { }
+    void ILiteNetEventListener.OnNetworkLatencyUpdate(LiteNetPeer peer, int latency) { }
+}
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="the-manager-constructor">The manager constructor</h3>
+<p>Four decisions are made here. The <code>EntityTypesMap</code> fixes the set of entity classes. The header byte is written as the first byte of every packet the manager produces, letting you run your own packets on the same connection and route by <code>PeekByte</code>. <code>framesPerSecond</code> is the logic tick rate — every entity's <code>Update()</code> runs at this frequency. <code>ServerSendRate</code> decides how often state is sent relative to ticks: every tick (<code>EqualToFPS</code>), every second (<code>HalfOfFPS</code>) or every third (<code>ThirdOfFPS</code>). An optional fifth parameter, <code>MaxHistorySize</code>, sizes the lag-compensation history and defaults to 32 ticks.</p>
+<h3 id="the-update-pump">The update pump</h3>
+<p><code>_netManager.PollEvents()</code> delivers incoming packets, <code>_entityManager.Update()</code> advances time: it accumulates real time and runs zero or more logic ticks, sending state on the ticks that match the send rate. Call both every iteration of your loop. Everything — entity updates, RPC handlers, spawns — runs single-threaded inside this call; game logic must stay on this thread for determinism. Async work such as database access is fine, but its results must re-enter the world only inside the logic path.</p>
+<h3 id="players">Players</h3>
+<p><code>AddPlayer</code> turns a transport peer into a <code>NetPlayer</code>. Wrapping the LiteNetLib peer in <code>new LiteNetLibNetPeer(peer, true)</code> stores the adapter in <code>peer.Tag</code>, which is how later callbacks find it. <code>AddPlayer</code> returns <code>null</code> when the player limit is reached — handle that by rejecting the connection. <code>RemovePlayer</code> cleans up the player and destroys the controller they own together with its pawn.</p>
+<p>The snippet adds the player directly in <code>OnPeerConnected</code>. The example project instead waits for a custom join packet carrying the type-map hash and only then calls <code>AddPlayer</code> — combine this page with the hash handshake from <a href="registering-entity-types.html">registering-entity-types.md</a> for production.</p>
+<h3 id="receiving-data">Receiving data</h3>
+<p>Everything a client sends to the entity system — inputs and requests — goes through <code>Deserialize</code>. Check the first byte yourself and pass only your LES packets; the return value distinguishes <code>Done</code>, <code>Error</code> (malformed data) and <code>HeaderCheckFailed</code> (not an LES packet).</p>
+<h3 id="custom-transport">Custom transport</h3>
+<p>Nothing above is LiteNetLib-specific except the adapter class. To run on your own transport, extend <code>AbstractNetPeer</code> — four members: <code>SendReliableOrdered</code>, <code>SendUnreliable</code>, <code>GetMaxUnreliablePacketSize</code>, <code>TriggerSend</code> — and pass your implementation wherever <code>LiteNetLibNetPeer</code> appears. <code>LiteNetLibNetPeer</code> itself is a reference implementation of exactly this — see <a href="../integration/transport.html">transport layer</a>.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<p>A newly added player automatically receives the full world as an LZ4-compressed reliable baseline on the next send tick, then switches to unreliable diffs. If a player stops confirming states for longer than <code>PlayerResyncTimeout</code> (4 seconds by default, public field), the server falls back to sending a fresh baseline. With zero players connected the simulation still runs, but nothing is sent.</p>
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Feeding every received packet into <code>Deserialize</code> without checking the header byte — your own protocol packets produce <code>HeaderCheckFailed</code> noise, and worse, LES packets fed to your own parser corrupt your protocol.</li>
+<li>Ignoring the <code>null</code> return of <code>AddPlayer</code> — at the player limit the connection stays open but the player is never part of the game.</li>
+<li>Touching entities or managers from another thread (timers, async callbacks) — the logic contract is single-threaded; marshal results back into the update loop instead.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><p><a href="starting-a-client.html">starting-a-client.md</a></p>
+</li>
+<li><p><a href="first-synced-entity.html">first-synced-entity.md</a></p>
+</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

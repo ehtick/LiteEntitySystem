@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Update flags and scheduling </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Update flags and scheduling ">
+      
+      <meta name="description" content="EntityFlags in full - which entities tick where, VisualUpdate scheduling, update order, and the SafeEntityUpdate option.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="update-flags-and-scheduling">Update flags and scheduling</h1>
+
+<p><code>[EntityFlags(...)]</code> on an entity class decides where its <code>Update()</code> and <code>VisualUpdate()</code> run and who receives the entity at all — three flags whose combinations cover every scheduling case in the library.</p>
+<h2 id="the-flags">The flags</h2>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th><code>Update()</code> runs</th>
+<th><code>VisualUpdate()</code> runs (client)</th>
+<th>Synced to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>(none)</em></td>
+<td>nowhere</td>
+<td>never</td>
+<td>everyone</td>
+</tr>
+<tr>
+<td><code>Updateable</code></td>
+<td>server + owning client (prediction)</td>
+<td>owning client only</td>
+<td>everyone</td>
+</tr>
+<tr>
+<td><code>UpdateOnClient</code></td>
+<td>server + <strong>every</strong> client</td>
+<td>every client</td>
+<td>everyone</td>
+</tr>
+<tr>
+<td><code>OnlyForOwner</code></td>
+<td><em>(visibility flag — combine with the above)</em></td>
+<td>—</td>
+<td>owner only</td>
+</tr>
+</tbody>
+</table>
+<p>Two structural facts. <code>UpdateOnClient</code> <em>includes</em> <code>Updateable</code> — it is a superset, not an alternative. And flags OR-merge down the class hierarchy: a subclass inherits every flag of its bases and cannot remove one (which is how a concrete <code>HumanControllerLogic</code> ends up both <code>OnlyForOwner</code> from <code>ControllerLogic</code> and <code>UpdateOnClient</code> from its own base).</p>
+<p>Client-created local entities (predicted spawns) are always updated on their client regardless of flags.</p>
+<h2 id="minimal-example">Minimal example</h2>
+<p>The two patterns that cover nearly everything:</p>
+<p><strong>Flags in practice</strong></p>
+<pre><code class="lang-csharp">using LiteEntitySystem;
+
+// Server logic; the owner's client predicts it. Remote clients
+// only interpolate SyncVars — no Update, no VisualUpdate.
+[EntityFlags(EntityFlags.Updateable)]
+public class Crate : EntityLogic
+{
+    public Crate(EntityParams entityParams) : base(entityParams) { }
+
+    protected override void Update() { /* server + owner prediction */ }
+}
+
+// Needs VisualUpdate on every client (a view that moves each frame),
+// so it takes UpdateOnClient — and guards its logic accordingly.
+[EntityFlags(EntityFlags.UpdateOnClient)]
+public class Missile : EntityLogic
+{
+    public Missile(EntityParams entityParams) : base(entityParams) { }
+
+    protected override void Update()
+    {
+        if (IsClient &amp;&amp; IsRemoteControlled)
+            return; // simulate only where authoritative or predicted
+
+        // movement, collision…
+    }
+
+    protected override void VisualUpdate()
+    {
+        // runs on every client, every render frame — move the view here
+    }
+}
+</code></pre>
+<h2 id="how-it-works">How it works</h2>
+<h3 id="who-is-alive">Who is &quot;alive&quot;</h3>
+<p>Internally the manager keeps an alive set — entities whose <code>Update</code>/<code>VisualUpdate</code> are scheduled. On the server that is every <code>Updateable</code> entity. On the client it is: local (predicted-spawn) entities, all <code>UpdateOnClient</code> entities, and <code>Updateable</code> entities the local player owns. Everything else on the client is passive: it receives state and interpolates, nothing more.</p>
+<h3 id="the-updateonclient-trade">The UpdateOnClient trade</h3>
+<p><code>VisualUpdate</code> is only scheduled for alive entities — so a remote entity that must run per-frame view code needs <code>UpdateOnClient</code>. The price is that its <code>Update()</code> now also runs on clients that do <em>not</em> simulate it authoritatively, which is why the <code>Missile</code> guards with <code>IsClient &amp;&amp; IsRemoteControlled</code>. This pairing — flag plus guard — is the current idiom, taken directly from the example project's projectile. For entities whose view can be driven from outside (a proxy object reading <code>InterpolatedValue</code>, as in <a href="../getting-started/first-synced-entity.html">first-synced-entity.md</a>), plain <code>Updateable</code> avoids the whole question.</p>
+<h3 id="update-order">Update order</h3>
+<p>Within a tick, alive entities update in creation order (each entity carries an <code>UpdateOrderNum</code> assigned at spawn). This order is stable but is not a design surface: don't encode gameplay dependencies in spawn order — use <code>BeforeControlledUpdate</code> for controller-before-pawn, and <code>OnLateConstructed</code> for construction-time dependencies.</p>
+<h3 id="safeentityupdate">SafeEntityUpdate</h3>
+<p>On the server, setting <code>SafeEntityUpdate = true</code> wraps every entity's <code>Update()</code> in a try/catch: an exception in one entity is logged and skips only that entity, instead of aborting the whole tick. Costs a little performance; useful in production where one broken entity should not stall the world.</p>
+<h2 id="behavior-details">Behavior details</h2>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_server" role="tab" aria-controls="tabpanel_1_server" data-tab="server" tabindex="0" aria-selected="true">Server</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_client" role="tab" aria-controls="tabpanel_1_client" data-tab="client" tabindex="-1">Client</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_prediction-rollback" role="tab" aria-controls="tabpanel_1_prediction-rollback" data-tab="prediction-rollback" tabindex="-1">Prediction / rollback</a>
+</li>
+</ul>
+<section id="tabpanel_1_server" role="tabpanel" data-tab="server">
+
+<p>All <code>Updateable</code> entities tick every logic tick, in creation order. <code>VisualUpdate</code> never runs on the server. <code>OnlyForOwner</code> affects only what is sent — the server itself simulates the entity normally.</p>
+</section>
+<section id="tabpanel_1_client" role="tabpanel" data-tab="client" aria-hidden="true" hidden="hidden">
+
+<p>The alive set defines both <code>Update</code> (per tick) and <code>VisualUpdate</code> (per render frame). A passive remote entity costs nothing per frame — its fields change only when states arrive. Ownership changes move entities in and out of the alive set automatically.</p>
+</section>
+<section id="tabpanel_1_prediction-rollback" role="tabpanel" data-tab="prediction-rollback" aria-hidden="true" hidden="hidden">
+
+<p>Rollback re-simulates locally controlled alive entities; flags don't widen that set — an <code>UpdateOnClient</code> entity that is remote-controlled is <em>not</em> re-simulated, its guarded <code>Update</code> simply keeps returning early. Predicted local entities skip re-simulation of ticks before their creation.</p>
+<p>Inside <code>Update</code> you can always ask which mode you are in: <code>EntityManager.InRollBackState</code> / <code>EntityManager.InNormalState</code> (or the underlying <code>EntityManager.UpdateMode</code>). Gate one-shot side effects — sounds, particles, camera shake — with <code>InNormalState</code>, or rollback re-simulation will fire them again on every correction.</p>
+</section>
+</div>
+
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>No <code>[EntityFlags]</code> at all — the entity syncs but never ticks anywhere; the most common &quot;why is my Update not called&quot;.</li>
+<li>Expecting <code>VisualUpdate</code> on a remote entity with plain <code>Updateable</code> — it is not in the client's alive set; either take <code>UpdateOnClient</code> with the guard, or drive the view externally from <code>InterpolatedValue</code>.</li>
+<li><code>UpdateOnClient</code> without the <code>IsClient &amp;&amp; IsRemoteControlled</code> guard — clients run simulation logic for entities they do not own and have no inputs for, fighting the incoming server state.</li>
+<li>Encoding gameplay dependencies in entity creation order — it is stable, but it is bookkeeping, not a contract.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="singletons.html">singletons.md</a></li>
+<li><a href="../getting-started/first-synced-entity.html">../getting-started/first-synced-entity.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

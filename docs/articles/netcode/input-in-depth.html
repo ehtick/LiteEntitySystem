@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Input in depth </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Input in depth ">
+      
+      <meta name="description" content="The input pipeline in detail - designing the struct, pending vs current input, buffering on both sides, and redundant delta-compressed sending.">
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="input-in-depth">Input in depth</h1>
+
+<p>Input is the client's only continuous upward channel: one unmanaged struct per tick, filled during render frames, applied on the logic tick, kept in history for rollback, and sent redundantly so packet loss costs nothing.</p>
+<h2 id="designing-the-struct">Designing the struct</h2>
+<p>The struct travels every tick, for every player, and is stored in history on both sides — so it should be small and flat.</p>
+<p><strong>PlayerInput.cs</strong></p>
+<pre><code class="lang-csharp">using System;
+
+[Flags]
+public enum MoveKeys : byte
+{
+    Up = 1, Down = 1 &lt;&lt; 1, Left = 1 &lt;&lt; 2, Right = 1 &lt;&lt; 3,
+    Fire = 1 &lt;&lt; 4, Jump = 1 &lt;&lt; 5, Use = 1 &lt;&lt; 6
+}
+
+public struct PlayerInput
+{
+    public MoveKeys Keys;     // pack booleans into flags, not separate bools
+    public float Rotation;    // analog values as-is
+}
+</code></pre>
+<p>Guidelines that follow from how it is transmitted:</p>
+<ul>
+<li><strong>Flags over booleans.</strong> Eight buttons in one byte, and unchanged bytes cost nothing after delta compression.</li>
+<li><strong>Intent, not results.</strong> Send &quot;forward is held&quot;, not a computed velocity — the server must derive the outcome itself, or it is trusting the client.</li>
+<li><strong>Quantize what tolerates it.</strong> A rotation is often fine as a <code>short</code> in a fixed range; a full <code>float</code> is 4 bytes every tick.</li>
+<li><strong>No references.</strong> The type must be <code>unmanaged</code>; entity references travel as <code>EntitySharedReference</code>.</li>
+</ul>
+<p>If a clean input is not all zeroes for your game — a default weapon slot, a neutral stance — override <code>GetDefaultInput()</code> on the controller.</p>
+<h2 id="pending-and-current">Pending and current</h2>
+<p>Two values live in the controller. <code>ModifyPendingInput()</code> returns a <code>ref</code> to the <em>pending</em> struct, which accumulates what the player did since the last tick; at the next logic tick the library promotes it to <code>CurrentInput</code>, stores it in the history buffer, and resets pending to the default.</p>
+<pre><code class="lang-csharp">protected override void VisualUpdate()
+{
+    ref PlayerInput input = ref ModifyPendingInput();
+
+    // OR-ing flags across frames: a keypress between ticks is not lost
+    if (Engine.IsKeyDown(Key.W))
+        input.Keys |= MoveKeys.Up;
+
+    // last-writer-wins for analog values
+    input.Rotation = Engine.GetAimAngle();
+}
+</code></pre>
+<p>Accumulating with <code>|=</code> matters: several render frames usually happen per tick, and a button tapped in any of them should survive to the tick. Analog values are naturally last-writer-wins.</p>
+<p>Read <code>CurrentInput</code> in <code>BeforeControlledUpdate</code> (or from the pawn through the controller) — never the pending value, which is the <em>next</em> tick's data.</p>
+<h2 id="buffering-and-sending">Buffering and sending</h2>
+<p>Each tick the client stores its input and sends a packet containing not just that tick's input but a window of recent unconfirmed ones, delta-compressed against each other. A lost packet is therefore covered by the next one, with no retransmission and no added latency — the cost is a few bytes per tick.</p>
+<p>On the server, arriving inputs go into a per-player buffer keyed by tick, and each tick consumes the entry matching the tick being simulated. Two consequences:</p>
+<ul>
+<li><strong>A missing input repeats the last one.</strong> If nothing arrived for the tick, the previously applied input stays in effect — a held key is a better guess than a sudden stop.</li>
+<li><strong>The buffer is deliberately non-empty.</strong> The client's adaptive clock keeps a small reserve of inputs queued on the server, so jitter does not starve it; <code>ServerInputBuffer</code> on the client reports the current depth. See <a href="adaptive-timing.html">adaptive timing</a>.</li>
+</ul>
+<p>Stored client-side inputs are dropped once the server confirms the tick that consumed them; the remaining ones are exactly what rollback replays.</p>
+<h2 id="rollback-replay">Rollback replay</h2>
+<p>During re-simulation the library reloads <code>CurrentInput</code> from history for each replayed tick, so <code>BeforeControlledUpdate</code> and the pawn's <code>Update</code> see precisely what they saw the first time. This is the reason polling belongs in the render frame: a live poll inside a re-simulated tick would feed today's input into yesterday's tick and desynchronize the prediction.</p>
+<div class="WARNING">
+<h5>Warning</h5>
+<p><strong>Common mistakes</strong></p>
+<ul>
+<li>Polling input in <code>Update</code> or <code>BeforeControlledUpdate</code> — keypresses between ticks are lost, and rollback re-runs those methods with historical input.</li>
+<li>Assigning flags instead of OR-ing them in the pending struct — a frame with no keys held wipes what earlier frames in the same tick recorded.</li>
+<li>Sending computed results (velocity, a hit target) instead of intent — the server has no way to validate them, which is exactly what server authority is for.</li>
+<li>A large input struct — it ships every tick with redundancy; every field is paid for continuously.</li>
+</ul>
+</div>
+<h2 id="related-pages">Related pages</h2>
+<ul>
+<li><a href="prediction-and-rollback.html">prediction-and-rollback.md</a></li>
+<li><a href="../sync/client-requests.html">../sync/client-requests.md</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
