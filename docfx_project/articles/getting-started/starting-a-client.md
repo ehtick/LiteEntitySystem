@@ -49,6 +49,7 @@ public class GameClient : ILiteNetEventListener
 
     void ILiteNetEventListener.OnPeerDisconnected(LiteNetPeer peer, DisconnectInfo info)
     {
+        _entityManager.Reset(); // cleanup resources - all entities got destroy
         _entityManager = null; // a manager is per-connection; make a new one on reconnect
     }
 
