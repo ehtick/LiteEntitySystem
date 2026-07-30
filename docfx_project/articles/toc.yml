@@ -1,4 +1,104 @@
-- name: ServerEntityManager update flow
-  href: server-update-flow.md
-- name: ClientEntityManager update flow
-  href: client-update-flow.md
+- name: What is LiteEntitySystem
+  href: index.md
+- name: Getting Started
+  items:
+    - name: Core model in five minutes
+      href: getting-started/core-model.md
+    - name: Installation and project setup
+      href: getting-started/installation.md
+    - name: Registering entity types
+      href: getting-started/registering-entity-types.md
+    - name: Starting a server
+      href: getting-started/starting-a-server.md
+    - name: Starting a client
+      href: getting-started/starting-a-client.md
+    - name: Your first synced entity
+      href: getting-started/first-synced-entity.md
+    - name: 'Adding a player: controller and pawn'
+      href: getting-started/adding-a-player.md
+    - name: Lag compensation
+      href: getting-started/lag-compensation.md
+    - name: Example project tour
+      href: getting-started/example-project-tour.md
+- name: Entities and World Structure
+  items:
+    - name: Entity class hierarchy
+      href: world/entity-hierarchy.md
+    - name: Entity lifecycle
+      href: world/entity-lifecycle.md
+    - name: Ownership and players
+      href: world/ownership-and-players.md
+    - name: Controllers in depth
+      href: world/controllers-in-depth.md
+    - name: AI controllers and bots
+      href: world/ai-controllers.md
+    - name: Update flags and scheduling
+      href: world/update-flags.md
+    - name: Singletons
+      href: world/singletons.md
+    - name: Parent and child entities
+      href: world/parent-child.md
+    - name: Finding entities
+      href: world/finding-entities.md
+    - name: Attaching Unity views
+      href: world/unity-views.md
+- name: Synchronization
+  items:
+    - name: How state gets to clients
+      href: sync/how-state-syncs.md
+    - name: SyncVar
+      href: sync/syncvar.md
+    - name: SyncFlags reference
+      href: sync/sync-flags.md
+    - name: 'Change notifications: BindOnChange'
+      href: sync/bind-on-change.md
+    - name: RPC basics
+      href: sync/rpc-basics.md
+    - name: RPC payloads
+      href: sync/rpc-payloads.md
+    - name: 'Client to server: requests'
+      href: sync/client-requests.md
+    - name: SyncableField basics
+      href: sync/syncablefield-basics.md
+    - name: Built-in syncable fields
+      href: sync/built-in-syncable-fields.md
+    - name: Writing a custom SyncableField
+      href: sync/custom-syncablefield.md
+    - name: 'SyncGroups: per-player data visibility'
+      href: sync/sync-groups.md
+- name: Time, Prediction and Lag Compensation
+  items:
+    - name: The tick model
+      href: netcode/tick-model.md
+    - name: Update vs VisualUpdate
+      href: netcode/update-vs-visualupdate.md
+    - name: Input in depth
+      href: netcode/input-in-depth.md
+    - name: Client-side prediction and rollback
+      href: netcode/prediction-and-rollback.md
+    - name: Controlling rollback per field
+      href: netcode/rollback-per-field.md
+    - name: Interpolation
+      href: netcode/interpolation.md
+    - name: Lag compensation in depth
+      href: netcode/lag-compensation-in-depth.md
+    - name: Predicted spawning
+      href: netcode/predicted-spawning.md
+    - name: Adaptive timing and buffers
+      href: netcode/adaptive-timing.md
+    - name: Server update flow
+      href: netcode/server-update-flow.md
+    - name: Debugging and diagnostics
+      href: netcode/diagnostics.md
+- name: Integration and Reference
+  items:
+    - name: Transport layer
+      href: integration/transport.md
+    - name: 'Hosting: dedicated and listen-server'
+      href: integration/hosting.md
+    - name: LocalMessageBus
+      href: integration/local-message-bus.md
+    - name: Limits and constants
+      href: integration/limits.md
+    - name: FAQ and troubleshooting
+      href: integration/faq.md
