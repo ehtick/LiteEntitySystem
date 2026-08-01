@@ -76,7 +76,7 @@ namespace LiteEntitySystem
         /// <summary>
         /// Add try catch to entity updates
         /// </summary>
-        public bool SafeEntityUpdate = false;
+        public bool SafeEntityUpdate = true;
 
         private ushort _minimalTick;
         
