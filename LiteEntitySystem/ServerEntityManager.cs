@@ -30,6 +30,18 @@ namespace LiteEntitySystem
         ThirdOfFPS = 3
     }
 
+    internal readonly struct PendingClientRequest
+    {
+        public readonly byte[] RequestData;
+        public readonly NetPlayer FromPlayer;
+
+        public PendingClientRequest(NetPlayer player, byte[] requestData)
+        {
+            FromPlayer = player;
+            RequestData = requestData;
+        }
+    }
+
     /// <summary>
     /// Server entity manager
     /// </summary>
@@ -41,7 +53,7 @@ namespace LiteEntitySystem
         private readonly IdGeneratorByte _playerIdQueue = new(1, MaxPlayers);
         private readonly Queue<RemoteCallPacket> _rpcPool = new();
         
-        private readonly Queue<byte[]> _pendingClientRequests = new();
+        private readonly Queue<PendingClientRequest> _pendingClientRequests = new();
         private byte[] _packetBuffer = new byte[(MaxParts+1) * NetConstants.MaxPacketSize + StateSerializer.MaxStateSize];
         private readonly SparseMap<NetPlayer> _netPlayers = new (MaxPlayers+1);
         private readonly StateSerializer[] _stateSerializers = new StateSerializer[MaxSyncedEntityCount];
@@ -384,7 +396,7 @@ namespace LiteEntitySystem
                     Logger.LogError("size less than minRequest");
                     return DeserializeResult.Error;
                 }
-                _pendingClientRequests.Enqueue(inData.ToArray());
+                _pendingClientRequests.Enqueue(new PendingClientRequest(player, inData.ToArray()));
                 return DeserializeResult.Done;
             }
             
@@ -549,11 +561,15 @@ namespace LiteEntitySystem
             //read pending client requests
             while (_pendingClientRequests.Count > 0)
             {
-                _requestsReader.SetSource(_pendingClientRequests.Dequeue());
+                var pendingReq = _pendingClientRequests.Dequeue();
+                _requestsReader.SetSource(pendingReq.RequestData);
                 ushort controllerId = _requestsReader.GetUShort();
                 byte controllerVersion = _requestsReader.GetByte();
-                if (TryGetEntityById<HumanControllerLogic>(new EntitySharedReference(controllerId, controllerVersion), out var controller))
+                if (TryGetEntityById<HumanControllerLogic>(new EntitySharedReference(controllerId, controllerVersion), out var controller) &&
+                    controller.InternalOwnerId == pendingReq.FromPlayer.Id)
+                {
                     controller.ReadClientRequest(_requestsReader);
+                }
             }
             
             //calculate minimalTick
